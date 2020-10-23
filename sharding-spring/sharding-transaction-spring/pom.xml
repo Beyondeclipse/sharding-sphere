@@ -23,7 +23,7 @@
     <parent>
         <artifactId>sharding-spring</artifactId>
         <groupId>org.apache.shardingsphere</groupId>
-        <version>5.0.0-RC1-SNAPSHOT</version>
+        <version>4.11.1-vipfix-SNAPSHOT</version>
     </parent>
     <artifactId>sharding-transaction-spring</artifactId>
     <name>${project.artifactId}</name>
