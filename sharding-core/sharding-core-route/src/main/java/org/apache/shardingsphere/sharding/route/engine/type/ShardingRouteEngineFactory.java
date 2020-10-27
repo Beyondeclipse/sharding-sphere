@@ -19,6 +19,7 @@ package org.apache.shardingsphere.sharding.route.engine.type;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shardingsphere.core.rule.ShardingRule;
 import org.apache.shardingsphere.sharding.route.engine.condition.ShardingConditions;
 import org.apache.shardingsphere.sharding.route.engine.type.broadcast.ShardingDataSourceGroupBroadcastRoutingEngine;
@@ -31,6 +32,11 @@ import org.apache.shardingsphere.sharding.route.engine.type.ignore.ShardingIgnor
 import org.apache.shardingsphere.sharding.route.engine.type.standard.ShardingStandardRoutingEngine;
 import org.apache.shardingsphere.sharding.route.engine.type.unicast.ShardingUnicastRoutingEngine;
 import org.apache.shardingsphere.sql.parser.binder.statement.SQLStatementContext;
+import org.apache.shardingsphere.sql.parser.binder.type.TableAvailable;
+import org.apache.shardingsphere.sql.parser.sql.segment.dml.TableReferenceSegment;
+import org.apache.shardingsphere.sql.parser.sql.segment.dml.expr.subquery.SubquerySegment;
+import org.apache.shardingsphere.sql.parser.sql.segment.generic.table.SimpleTableSegment;
+import org.apache.shardingsphere.sql.parser.sql.segment.generic.table.SubqueryTableSegment;
 import org.apache.shardingsphere.sql.parser.sql.statement.SQLStatement;
 import org.apache.shardingsphere.sql.parser.sql.statement.dal.DALStatement;
 import org.apache.shardingsphere.sql.parser.sql.statement.dal.SetStatement;
@@ -41,12 +47,14 @@ import org.apache.shardingsphere.sql.parser.sql.statement.dcl.DCLStatement;
 import org.apache.shardingsphere.sql.parser.sql.statement.ddl.DDLStatement;
 import org.apache.shardingsphere.sql.parser.sql.statement.dml.DMLStatement;
 import org.apache.shardingsphere.sql.parser.sql.statement.dml.SelectStatement;
-import org.apache.shardingsphere.sql.parser.binder.type.TableAvailable;
 import org.apache.shardingsphere.sql.parser.sql.statement.tcl.TCLStatement;
 import org.apache.shardingsphere.underlying.common.config.properties.ConfigurationProperties;
 import org.apache.shardingsphere.underlying.common.metadata.ShardingSphereMetaData;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 /**
  * Sharding routing engine factory.
@@ -86,6 +94,22 @@ public final class ShardingRouteEngineFactory {
         }
         if (shardingRule.isAllBroadcastTables(tableNames)) {
             return sqlStatement instanceof SelectStatement ? new ShardingUnicastRoutingEngine(tableNames) : new ShardingDatabaseBroadcastRoutingEngine();
+        }
+        if (sqlStatement instanceof SelectStatement) {
+            SelectStatement selectStatement = (SelectStatement) sqlStatement;
+            for (TableReferenceSegment segment : selectStatement.getTableReferences()) {
+                if (!(segment.getTableFactor().getTable() instanceof SubqueryTableSegment)) {
+                    continue;
+                }
+                SubquerySegment subquerySegment = ((SubqueryTableSegment) segment.getTableFactor().getTable()).getSubquery();
+                Collection<SimpleTableSegment> coll = subquerySegment.getSelect().getSimpleTableSegments();
+                if (CollectionUtils.isNotEmpty(coll)) {
+                    List<String> subTableNames = coll.stream().map(
+                        i -> i.getTableName().getIdentifier().getValue())
+                        .collect(Collectors.toList());
+                    return getShardingRoutingEngine(shardingRule, sqlStatementContext, shardingConditions, subTableNames, properties);
+                }
+            }
         }
         if (sqlStatementContext.getSqlStatement() instanceof DMLStatement && tableNames.isEmpty() && shardingRule.hasDefaultDataSourceName()) {
             return new ShardingDefaultDatabaseRoutingEngine(tableNames);
