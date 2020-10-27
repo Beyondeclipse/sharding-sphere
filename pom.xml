@@ -939,4 +939,77 @@
             <unsubscribe>dev-unsubscribe@shardingsphere.apache.org</unsubscribe>
         </mailingList>
     </mailingLists>
+
+  <!--/////////////////// VIP Repositories START/////////////////////-->
+  <repositories>
+    <repository>
+      <id>VIP-nexus</id>
+      <url>http://mvn1.tools.vipshop.com/nexus/content/groups/public</url>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>vip_central</id>
+      <name>VIP FCS Central Repo</name>
+      <url>http://mvn1.tools.vipshop.com/nexus/content/repositories/central</url>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>warn</checksumPolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>vip-plugins</id>
+      <name>Nexus</name>
+      <url>http://mvn1.tools.vipshop.com/nexus/content/groups/public</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>vip-central-plugins</id>
+      <name>Nexus</name>
+      <url>http://mvn1.tools.vipshop.com/nexus/content/repositories/central</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+  <distributionManagement>
+    <!-- Publish the versioned releases here -->
+    <repository>
+      <id>releases</id>
+      <name>VIP nexus - releases</name>
+      <url>http://mvn1.tools.vipshop.com/nexus/content/repositories/releases/</url>
+    </repository>
+
+    <!-- Publish the versioned snapshoots here -->
+    <snapshotRepository>
+      <id>snapshots</id>
+      <name>VIP snapshots</name>
+      <url>http://mvn1.tools.vipshop.com/nexus/content/repositories/snapshots/</url>
+    </snapshotRepository>
+  </distributionManagement>
+  <!--/////////////////// VIP Repositories END/////////////////////-->
 </project>
