@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.shardingsphere</groupId>
         <artifactId>sharding-orchestration-core</artifactId>
-        <version>4.11.1-vipfix-SNAPSHOT</version>
+        <version>4.1.1.2-vipfix-SNAPSHOT</version>
     </parent>
     <artifactId>sharding-orchestration-core-facade</artifactId>
     <name>${project.artifactId}</name>
