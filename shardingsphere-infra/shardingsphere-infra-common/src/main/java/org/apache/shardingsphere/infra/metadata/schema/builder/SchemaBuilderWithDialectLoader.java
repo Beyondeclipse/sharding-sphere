@@ -67,7 +67,6 @@ public final class SchemaBuilderWithDialectLoader {
      */
     public static Map<String, TableMetaData> build(final DialectTableMetaDataLoader dialectLoader, final ExecutorService executorService,
             final SchemaBuilderMaterials materials, final Map<String, Collection<DataNode>> logicTableDataNodesMap) throws SQLException {
-
         Collection<Future<Map<String, TableMetaData>>> futures = new LinkedList<>();
         Map<String, DataNode> logicTableFirstDataNodeMap = logicTableDataNodesMap.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().iterator().next()));
@@ -76,7 +75,6 @@ public final class SchemaBuilderWithDialectLoader {
             Collection<String> excludeTables = datasourceExcludeTablesMap.getOrDefault(each.getKey(), Collections.emptyList());
             futures.add(executorService.submit(() -> dialectLoader.load(each.getValue(), excludeTables)));
         }
-
         Map<String, TableMetaData> result = new HashMap<>(materials.getRules().size(), 1);
         for (Future<Map<String, TableMetaData>> each : futures) {
             try {
@@ -108,10 +106,8 @@ public final class SchemaBuilderWithDialectLoader {
             String actualTableName = entry.getKey();
             String logicTableName = firstActualLogicTableMap.get(actualTableName);
             if (null != logicTableName && !logicTableName.equals(actualTableName)) {
-                if (!tables.containsKey(logicTableName)) {
-                    TableMetaData copyTableMetaData = entry.getValue();
-                    tables.put(logicTableName, new TableMetaData(logicTableName, copyTableMetaData.getColumns().values(), copyTableMetaData.getIndexes().values()));
-                }
+                TableMetaData copyTableMetaData = entry.getValue();
+                tables.put(logicTableName, new TableMetaData(logicTableName, copyTableMetaData.getColumns().values(), copyTableMetaData.getIndexes().values()));
             } else {
                 tables.put(actualTableName, entry.getValue());
             }
