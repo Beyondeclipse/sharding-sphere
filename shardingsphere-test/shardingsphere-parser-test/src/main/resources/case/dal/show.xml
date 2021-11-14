@@ -23,7 +23,7 @@
     
     <show-index sql-case-id="show_index_with_indexes_with_table_and_database">
         <table name="t_order" start-index="18" stop-index="24" />
-        <schema name="sharding_db" start-index="31" stop-index="41" />
+        <schema name="sharding_db" start-index="26" stop-index="41" />
     </show-index>
     
     <show-index sql-case-id="show_index_with_keys_with_database_and_table">
@@ -34,12 +34,12 @@
     
     <show-index sql-case-id="show_index_with_table_back_quotes">
         <table name="t_order" start-delimiter="`" end-delimiter="`" start-index="18" stop-index="26" />
-        <schema name="sharding_db" start-index="33" stop-index="43" />
+        <schema name="sharding_db" start-index="28" stop-index="43" />
     </show-index>
     
     <show-index sql-case-id="show_index_with_database_back_quotes">
         <table name="t_order" start-index="18" stop-index="24" />
-        <schema name="sharding_db" start-delimiter="`" end-delimiter="`" start-index="31" stop-index="43" />
+        <schema name="sharding_db" start-delimiter="`" end-delimiter="`" start-index="26" stop-index="43" />
     </show-index>
     
     <show-index sql-case-id="show_index_with_back_quotes">
@@ -55,9 +55,51 @@
     <show-create-table sql-case-id="show_create_table">
         <table name="t_order" start-delimiter="`" end-delimiter="`" start-index="18" stop-index="26"/>
     </show-create-table>
+
+    <show-create-trigger sql-case-id="show_create_trigger">
+        <trigger name="trigger1" start-delimiter="`" end-delimiter="`" start-index="21" stop-index="30" />
+    </show-create-trigger>
+
+    <show-create-user sql-case-id="show_create_user">
+        <user name="user1" start-delimiter="`" end-delimiter="`" start-index="17" stop-index="24" />
+    </show-create-user>
     
     <show-table-status sql-case-id="show_table_status" />
     <show sql-case-id="show_all" />
     <show sql-case-id="show_server_version" />
     <show sql-case-id="show_transaction_isolation_level" />
+    
+    <show-tables sql-case-id="show_tables">
+        <schema start-delimiter="`" end-delimiter="`" start-index="17" stop-index="34" />
+    </show-tables>
+
+    <show-tables sql-case-id="show_tables_with_filter">
+        <schema start-delimiter="`" end-delimiter="`" start-index="17" stop-index="34" />
+        <like pattern="t_order" start-index="36" stop-index="49" />
+    </show-tables>
+
+    <show-databases sql-case-id="show_databases" />
+
+    <show-databases sql-case-id="show_databases_with_like">
+        <like pattern="sharding_db" start-index="15" stop-index="32" />
+    </show-databases>
+
+    <show-function-status sql-case-id="show_function_status" />
+    <show-procedure-status sql-case-id="show_procedure_status" />
+    <show-replicas sql-case-id="show_replicas" />
+    <show-procedure-code sql-case-id="show_procedure_code_func">
+        <function function-name="TEST_FUNC" start-index="20" stop-index="28" text="TEST_FUNC" />
+    </show-procedure-code>
+    <show-procedure-code sql-case-id="show_procedure_code_owner_func">
+        <function function-name="TEST_FUNC" start-index="20" stop-index="38" text="TEST_USER.TEST_FUNC">
+            <owner name="TEST_USER" start-index="20" stop-index="28"/>
+        </function>
+    </show-procedure-code>
+    <show-relaylog-events sql-case-id="show_relaylog_events" channel="TEST_CHANNEL" /> 
+    <show-relaylog-events sql-case-id="show_relaylog_events_with_log" channel="TEST_CHANNEL" log-name="TEST_LOG" />
+    <show-slave-hosts sql-case-id="show_slave_hosts" />
+    <show-replica-status sql-case-id="show_replica_status" />
+    <show-replica-status sql-case-id="show_replica_status_with_channel" channel="TEST_CHANNEL"/>
+    <show-slave-status sql-case-id="show_slave_status" />
+    <show-slave-status sql-case-id="show_slave_status_with_channel" channel="TEST_CHANNEL" />
 </sql-parser-test-cases>

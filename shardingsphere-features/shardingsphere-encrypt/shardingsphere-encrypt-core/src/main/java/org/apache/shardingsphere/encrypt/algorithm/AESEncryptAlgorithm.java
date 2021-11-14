@@ -40,7 +40,7 @@ import java.util.Properties;
  */
 @Getter
 @Setter
-public final class AESEncryptAlgorithm implements EncryptAlgorithm {
+public final class AESEncryptAlgorithm implements EncryptAlgorithm<Object, String> {
     
     private static final String AES_KEY = "aes-key-value";
     
@@ -54,27 +54,27 @@ public final class AESEncryptAlgorithm implements EncryptAlgorithm {
     }
     
     private byte[] createSecretKey() {
-        Preconditions.checkArgument(props.containsKey(AES_KEY), String.format("%s can not be null.", AES_KEY));
+        Preconditions.checkArgument(props.containsKey(AES_KEY), "%s can not be null.", AES_KEY);
         return Arrays.copyOf(DigestUtils.sha1(props.getProperty(AES_KEY)), 16);
     }
     
     @SneakyThrows(GeneralSecurityException.class)
     @Override
-    public String encrypt(final Object plaintext) {
-        if (null == plaintext) {
+    public String encrypt(final Object plainValue) {
+        if (null == plainValue) {
             return null;
         }
-        byte[] result = getCipher(Cipher.ENCRYPT_MODE).doFinal(String.valueOf(plaintext).getBytes(StandardCharsets.UTF_8));
+        byte[] result = getCipher(Cipher.ENCRYPT_MODE).doFinal(String.valueOf(plainValue).getBytes(StandardCharsets.UTF_8));
         return DatatypeConverter.printBase64Binary(result);
     }
     
     @SneakyThrows(GeneralSecurityException.class)
     @Override
-    public Object decrypt(final String ciphertext) {
-        if (null == ciphertext) {
+    public Object decrypt(final String cipherValue) {
+        if (null == cipherValue) {
             return null;
         }
-        byte[] result = getCipher(Cipher.DECRYPT_MODE).doFinal(DatatypeConverter.parseBase64Binary(ciphertext));
+        byte[] result = getCipher(Cipher.DECRYPT_MODE).doFinal(DatatypeConverter.parseBase64Binary(cipherValue));
         return new String(result, StandardCharsets.UTF_8);
     }
     

@@ -1,5 +1,5 @@
 +++
-pre = "<b>5.11. </b>"
+pre = "<b>6.11. </b>"
 title = "Proxy"
 weight = 11
 chapter = true
@@ -15,6 +15,7 @@ chapter = true
 | ------------------------ | ------------------------------------------------------------------------------- |
 | MySQLFrontendEngine      | Base on MySQL database protocol                                                 |
 | PostgreSQLFrontendEngine | Base on PostgreSQL database protocol                                            |
+| OpenGaussFrontendEngine | Base on openGauss database protocol                                            |
 
 ## JDBCDriverURLRecognizer
 
@@ -29,6 +30,8 @@ chapter = true
 | OracleRecognizer        |  Use Oracle JDBC driver to execute SQL     |
 | SQLServerRecognizer     |  Use SQLServer JDBC driver to execute SQL  |
 | H2Recognizer            |  Use H2 JDBC driver to execute SQL         |
+| P6SpyDriverRecognizer   |  Use P6Spy JDBC driver to execute SQL      |
+| OpenGaussRecognizer   |  Use openGauss JDBC driver to execute SQL      |
 
 ## AuthorityProvideAlgorithm
 
@@ -36,7 +39,8 @@ chapter = true
 | ------------------------------- | ------------------------------ |
 | AuthorityProvideAlgorithm       | User authority loading logic   |
 
-| *Implementation Class*                             | *Type*                   | *Description*                                                                                                          |
-| -------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| NativeAuthorityProviderAlgorithm                   | NATIVE                   | Persist user authority defined in server.yaml into the backend database. An admin user will be created if not existed. |
-| AllPrivilegesPermittedAuthorityProviderAlgorithm   | ALL_PRIVILEGES_PERMITTED | All privileges granted to user by default (No authentication). Will not interact with the actual database.             |
+| *Implementation Class*                                | *Type*                      | *Description*                                                                                                          |
+| ----------------------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| NativeAuthorityProviderAlgorithm                      | NATIVE                      | Persist user authority defined in server.yaml into the backend database. An admin user will be created if not existed. |
+| AllPrivilegesPermittedAuthorityProviderAlgorithm      | ALL_PRIVILEGES_PERMITTED    | All privileges granted to user by default (No authentication). Will not interact with the actual database.             |
+| SchemaPrivilegesPermittedAuthorityProviderAlgorithm   | SCHEMA_PRIVILEGES_PERMITTED | Permissions configured through the attribute user-schema-mappings.                                                     |

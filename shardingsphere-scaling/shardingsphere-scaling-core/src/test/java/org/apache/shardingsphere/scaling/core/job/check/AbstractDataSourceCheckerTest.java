@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public final class AbstractDataSourceCheckerTest {
     
-    @Mock
+    @Mock(extraInterfaces = AutoCloseable.class)
     private DataSource dataSource;
     
     @Mock
@@ -61,7 +61,7 @@ public final class AbstractDataSourceCheckerTest {
             }
             
             @Override
-            protected ScalingSQLBuilder getSqlBuilder() {
+            protected ScalingSQLBuilder getSQLBuilder() {
                 return null;
             }
         };

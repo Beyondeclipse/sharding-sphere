@@ -19,6 +19,9 @@ package org.apache.shardingsphere.infra.rewrite.context;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
+import org.apache.shardingsphere.infra.binder.statement.dml.InsertStatementContext;
+import org.apache.shardingsphere.infra.metadata.schema.ShardingSphereSchema;
 import org.apache.shardingsphere.infra.rewrite.parameter.builder.ParameterBuilder;
 import org.apache.shardingsphere.infra.rewrite.parameter.builder.impl.GroupedParameterBuilder;
 import org.apache.shardingsphere.infra.rewrite.parameter.builder.impl.StandardParameterBuilder;
@@ -26,9 +29,6 @@ import org.apache.shardingsphere.infra.rewrite.sql.token.generator.SQLTokenGener
 import org.apache.shardingsphere.infra.rewrite.sql.token.generator.SQLTokenGenerators;
 import org.apache.shardingsphere.infra.rewrite.sql.token.generator.builder.DefaultTokenGeneratorBuilder;
 import org.apache.shardingsphere.infra.rewrite.sql.token.pojo.SQLToken;
-import org.apache.shardingsphere.infra.metadata.schema.ShardingSphereSchema;
-import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
-import org.apache.shardingsphere.infra.binder.statement.dml.InsertStatementContext;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -61,7 +61,7 @@ public final class SQLRewriteContext {
         this.sql = sql;
         this.parameters = parameters;
         addSQLTokenGenerators(new DefaultTokenGeneratorBuilder().getSQLTokenGenerators());
-        parameterBuilder = sqlStatementContext instanceof InsertStatementContext
+        parameterBuilder = ((sqlStatementContext instanceof InsertStatementContext) && (null == ((InsertStatementContext) sqlStatementContext).getInsertSelectContext()))
                 ? new GroupedParameterBuilder(
                         ((InsertStatementContext) sqlStatementContext).getGroupedParameters(), ((InsertStatementContext) sqlStatementContext).getOnDuplicateKeyUpdateParameters())
                 : new StandardParameterBuilder(parameters);

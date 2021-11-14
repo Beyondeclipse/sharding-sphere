@@ -203,7 +203,7 @@ showProcedureCode
     ;
 
 showProcedureStatus
-    : SHOW PROCEDURE STATUS showFilter
+    : SHOW PROCEDURE STATUS showFilter?
     ;
 
 showProcesslist
@@ -244,6 +244,14 @@ showVariables
 
 showWarnings
     : SHOW (COUNT LP_ ASTERISK_ RP_)? WARNINGS (LIMIT (NUMBER_ COMMA_)? NUMBER_)?
+    ;
+
+showReplicas
+    : SHOW REPLICAS
+    ;
+    
+showReplicaStatus
+    : SHOW REPLICA STATUS (FOR CHANNEL channelName)?
     ;
 
 setCharacter
@@ -346,7 +354,7 @@ cacheIndex
     ;
 
 tableIndexList
-    : tableName (PARTITION LP_ partitionList RP_)? ((INDEX | KEY) LP_ indexName (COMMA_ indexName)* RP_)? (IGNORE LEAVES)?
+    : tableName ((INDEX | KEY) LP_ indexName (COMMA_ indexName)* RP_)? (IGNORE LEAVES)?
     ;
 
 partitionList
@@ -451,4 +459,6 @@ show
     | showTrriggers
     | showWarnings
     | showVariables
+    | showReplicas
+    | showReplicaStatus
     ;

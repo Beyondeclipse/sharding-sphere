@@ -22,9 +22,11 @@ import org.apache.shardingsphere.infra.config.properties.ConfigurationPropertyKe
 import org.apache.shardingsphere.proxy.backend.communication.jdbc.connection.BackendConnection;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.frontend.command.CommandExecutorTask;
-import org.apache.shardingsphere.proxy.frontend.executor.CommandExecutorSelector;
+import org.apache.shardingsphere.proxy.frontend.executor.ConnectionThreadExecutorGroup;
+import org.apache.shardingsphere.proxy.frontend.executor.UserExecutorGroup;
 import org.apache.shardingsphere.proxy.frontend.spi.DatabaseProtocolFrontendEngine;
 import org.apache.shardingsphere.proxy.frontend.state.ProxyState;
+import org.apache.shardingsphere.transaction.core.TransactionType;
 
 import java.util.concurrent.ExecutorService;
 
@@ -35,10 +37,39 @@ public final class OKProxyState implements ProxyState {
     
     @Override
     public void execute(final ChannelHandlerContext context, final Object message, final DatabaseProtocolFrontendEngine databaseProtocolFrontendEngine, final BackendConnection backendConnection) {
-        boolean supportHint = ProxyContext.getInstance().getMetaDataContexts().getProps().<Boolean>getValue(ConfigurationPropertyKey.PROXY_HINT_ENABLED);
-        boolean isOccupyThreadForPerConnection = databaseProtocolFrontendEngine.getFrontendContext().isOccupyThreadForPerConnection();
-        ExecutorService executorService = CommandExecutorSelector.getExecutorService(
-                isOccupyThreadForPerConnection, supportHint, backendConnection.getTransactionStatus().getTransactionType(), backendConnection.getConnectionId());
-        executorService.execute(new CommandExecutorTask(databaseProtocolFrontendEngine, backendConnection, context, message));
+        CommandExecutorTask commandExecutorTask = new CommandExecutorTask(databaseProtocolFrontendEngine, backendConnection, context, message);
+        ExecutorService executorService = determineSuitableExecutorService(context, databaseProtocolFrontendEngine, backendConnection);
+        executorService.execute(commandExecutorTask);
+    }
+    
+    private ExecutorService determineSuitableExecutorService(final ChannelHandlerContext context, final DatabaseProtocolFrontendEngine databaseProtocolFrontendEngine,
+                                                             final BackendConnection backendConnection) {
+        ExecutorService result;
+        if (requireOccupyThreadForConnection(backendConnection)) {
+            result = ConnectionThreadExecutorGroup.getInstance().get(backendConnection.getConnectionId());
+        } else if (isPreferNettyEventLoop()) {
+            result = context.executor();
+        } else if (databaseProtocolFrontendEngine.getFrontendContext().isRequiredSameThreadForConnection()) {
+            result = ConnectionThreadExecutorGroup.getInstance().get(backendConnection.getConnectionId());
+        } else {
+            result = UserExecutorGroup.getInstance().getExecutorService();
+        }
+        return result;
+    }
+    
+    private boolean requireOccupyThreadForConnection(final BackendConnection backendConnection) {
+        return ProxyContext.getInstance().getContextManager().getMetaDataContexts().getProps().<Boolean>getValue(ConfigurationPropertyKey.PROXY_HINT_ENABLED)
+                || TransactionType.isDistributedTransaction(backendConnection.getTransactionStatus().getTransactionType());
+    }
+    
+    private boolean isPreferNettyEventLoop() {
+        switch (ProxyContext.getInstance().getContextManager().getMetaDataContexts().getProps().<String>getValue(ConfigurationPropertyKey.PROXY_BACKEND_EXECUTOR_SUITABLE)) {
+            case "OLTP":
+                return true;
+            case "OLAP":
+                return false;
+            default:
+                throw new IllegalArgumentException("The property proxy-backend-executor-suitable must be 'OLAP' or 'OLTP'");
+        }
     }
 }

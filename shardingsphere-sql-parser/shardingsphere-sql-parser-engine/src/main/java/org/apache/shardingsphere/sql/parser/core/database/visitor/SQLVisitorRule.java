@@ -99,6 +99,8 @@ public enum SQLVisitorRule {
     DROP_SERVER("DropServer", SQLStatementType.DDL),
     
     CREATE_TRIGGER("CreateTrigger", SQLStatementType.DDL),
+
+    ALTER_TRIGGER("AlterTrigger", SQLStatementType.DDL),
     
     DROP_TRIGGER("DropTrigger", SQLStatementType.DDL),
     
@@ -129,9 +131,25 @@ public enum SQLVisitorRule {
     ALTER_TABLESPACE("AlterTablespace", SQLStatementType.DDL),
     
     DROP_TABLESPACE("DropTablespace", SQLStatementType.DDL),
-
+    
     ASSOCIATE_STATISTICS("AssociateStatistics", SQLStatementType.DDL),
+    
+    DISASSOCIATE_STATISTICS("DisassociateStatistics", SQLStatementType.DDL),
+    
+    AUDIT("Audit", SQLStatementType.DDL),
+    
+    NOAUDIT("NoAudit", SQLStatementType.DDL),
 
+    COMMENT("Comment", SQLStatementType.DDL),
+
+    FLASHBACK_DATABASE("FlashbackDatabase", SQLStatementType.DDL),
+
+    FLASHBACK_TABLE("FlashbackTable", SQLStatementType.DDL),
+    
+    PURGE("Purge", SQLStatementType.DDL),
+
+    RENAME("Rename", SQLStatementType.DDL),
+    
     SET_CONSTRAINTS("SetConstraints", SQLStatementType.TCL),
     
     SET_TRANSACTION("SetTransaction", SQLStatementType.TCL),
@@ -139,6 +157,8 @@ public enum SQLVisitorRule {
     SET_IMPLICIT_TRANSACTIONS("SetImplicitTransactions", SQLStatementType.TCL),
     
     BEGIN_TRANSACTION("BeginTransaction", SQLStatementType.TCL),
+    
+    BEGIN_DISTRIBUTED_TRANSACTION("BeginDistributedTransaction", SQLStatementType.TCL),
     
     START_TRANSACTION("StartTransaction", SQLStatementType.TCL),
     
@@ -148,7 +168,11 @@ public enum SQLVisitorRule {
     
     COMMIT("Commit", SQLStatementType.TCL),
     
+    COMMIT_WORK("CommitWork", SQLStatementType.TCL),
+    
     ROLLBACK("Rollback", SQLStatementType.TCL),
+    
+    ROLLBACK_WORK("RollbackWork", SQLStatementType.TCL),
     
     SAVEPOINT("Savepoint", SQLStatementType.TCL),
     
@@ -217,9 +241,21 @@ public enum SQLVisitorRule {
     SHOW_CREATE_TABLE("ShowCreateTable", SQLStatementType.DAL),
     
     SHOW_OTHER("ShowOther", SQLStatementType.DAL),
+
+    SHOW_REPLICAS("ShowReplicas", SQLStatementType.DAL),
+    
+    SHOW_REPLICA_STATUS("ShowReplicaStatus", SQLStatementType.DAL),
+    
+    SHOW_SLAVE_HOSTS("ShowSlaveHosts", SQLStatementType.DAL),
+    
+    SHOW_SLAVE_STATUS("ShowSlaveStatus", SQLStatementType.DAL),
     
     SHOW("Show", SQLStatementType.DAL),
-    
+
+    SHOW_RELAYLOG_EVENTS("ShowRelaylogEventsStatement", SQLStatementType.DAL),
+
+    SHOW_PROCEDURE_CODE("ShowProcedureCodeStatement", SQLStatementType.DAL),
+
     SET_VARIABLE("SetVariable", SQLStatementType.DAL),
     
     SET("Set", SQLStatementType.DAL),
@@ -238,6 +274,34 @@ public enum SQLVisitorRule {
     
     LOAD("Load", SQLStatementType.DAL),
     
+    INSTALL("Install", SQLStatementType.DAL),
+    
+    UNINSTALL("Uninstall", SQLStatementType.DAL),
+    
+    FLUSH("Flush", SQLStatementType.DAL),
+
+    RESTART("Restart", SQLStatementType.DAL),
+
+    CREATE_RESOURCE_GROUP("CreateResourceGroup", SQLStatementType.DAL),
+    
+    SET_RESOURCE_GROUP("SetResourceGroup", SQLStatementType.DAL),
+    
+    BINLOG("Binlog", SQLStatementType.DAL),
+    
+    OPTIMIZE_TABLE("OptimizeTable", SQLStatementType.DAL),
+
+    CLONE("Clone", SQLStatementType.DAL),
+    
+    REPAIR_TABLE("RepairTable", SQLStatementType.DAL),
+    
+    KILL("Kill", SQLStatementType.DAL),
+    
+    RESET("ResetStatement", SQLStatementType.DAL),
+
+    RESET_PERSIST("ResetPersistStatement", SQLStatementType.DAL),
+
+    CACHE_INDEX("CacheIndex", SQLStatementType.DAL),
+
     CALL("Call", SQLStatementType.DML),
     
     CHANGE_MASTER("ChangeMaster", SQLStatementType.RL), 
@@ -246,7 +310,21 @@ public enum SQLVisitorRule {
     
     STOP_SLAVE("StopSlave", SQLStatementType.RL),
 
-    XA("Xa", SQLStatementType.TCL);
+    XA("Xa", SQLStatementType.TCL),
+    
+    ABORT("Abort", SQLStatementType.TCL),
+
+    CREATE_SCHEMA("CreateSchema", SQLStatementType.DDL),
+
+    ALTER_SCHEMA("AlterSchema", SQLStatementType.DDL),
+
+    DROP_SCHEMA("DropSchema", SQLStatementType.DDL),
+
+    CREATE_SERVICE("CreateService", SQLStatementType.DDL),
+
+    ALTER_SERVICE("AlterService", SQLStatementType.DDL),
+
+    DROP_SERVICE("DropService", SQLStatementType.DDL);
 
     private final String name;
     

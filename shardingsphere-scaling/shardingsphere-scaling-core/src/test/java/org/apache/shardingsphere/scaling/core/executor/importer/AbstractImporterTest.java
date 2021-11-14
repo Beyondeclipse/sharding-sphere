@@ -17,8 +17,6 @@
 
 package org.apache.shardingsphere.scaling.core.executor.importer;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.apache.shardingsphere.scaling.core.common.channel.Channel;
 import org.apache.shardingsphere.scaling.core.common.datasource.DataSourceManager;
 import org.apache.shardingsphere.scaling.core.common.record.Column;
@@ -42,11 +40,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
@@ -75,7 +75,7 @@ public final class AbstractImporterTest {
     @Mock
     private Channel channel;
     
-    @Mock
+    @Mock(extraInterfaces = AutoCloseable.class)
     private DataSource dataSource;
     
     @Mock
@@ -131,6 +131,7 @@ public final class AbstractImporterTest {
         when(scalingSqlBuilder.buildUpdateSQL(updateRecord, mockConditionColumns(updateRecord))).thenReturn(UPDATE_SQL);
         when(connection.prepareStatement(UPDATE_SQL)).thenReturn(preparedStatement);
         when(channel.fetchRecords(anyInt(), anyInt())).thenReturn(mockRecords(updateRecord));
+        when(scalingSqlBuilder.extractUpdatedColumns(any(), any())).thenReturn(RecordUtil.extractUpdatedColumns(updateRecord));
         jdbcImporter.run();
         verify(preparedStatement).setObject(1, 10);
         verify(preparedStatement).setObject(2, "UPDATE");
@@ -145,6 +146,7 @@ public final class AbstractImporterTest {
         when(scalingSqlBuilder.buildUpdateSQL(updateRecord, mockConditionColumns(updateRecord))).thenReturn(UPDATE_SQL);
         when(connection.prepareStatement(UPDATE_SQL)).thenReturn(preparedStatement);
         when(channel.fetchRecords(anyInt(), anyInt())).thenReturn(mockRecords(updateRecord));
+        when(scalingSqlBuilder.extractUpdatedColumns(any(), any())).thenReturn(RecordUtil.extractUpdatedColumns(updateRecord));
         jdbcImporter.run();
         InOrder inOrder = inOrder(preparedStatement);
         inOrder.verify(preparedStatement).setObject(1, 2);
@@ -166,7 +168,7 @@ public final class AbstractImporterTest {
     }
     
     private Collection<Column> mockConditionColumns(final DataRecord dataRecord) {
-        return RecordUtil.extractConditionColumns(dataRecord, Sets.newHashSet("user"));
+        return RecordUtil.extractConditionColumns(dataRecord, Collections.singleton("user"));
     }
     
     private List<Record> mockRecords(final DataRecord dataRecord) {
@@ -189,9 +191,7 @@ public final class AbstractImporterTest {
     private ImporterConfiguration mockImporterConfiguration() {
         ImporterConfiguration result = new ImporterConfiguration();
         result.setDataSourceConfig(dataSourceConfig);
-        Map<String, Set<String>> shardingColumnsMap = Maps.newHashMap();
-        shardingColumnsMap.put("test_table", Sets.newHashSet("user"));
-        result.setShardingColumnsMap(shardingColumnsMap);
+        result.setShardingColumnsMap(Collections.singletonMap("test_table", Collections.singleton("user")));
         return result;
     }
 }

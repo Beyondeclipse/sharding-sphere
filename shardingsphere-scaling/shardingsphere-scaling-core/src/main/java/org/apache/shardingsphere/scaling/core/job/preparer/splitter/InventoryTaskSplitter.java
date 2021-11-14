@@ -17,8 +17,8 @@
 
 package org.apache.shardingsphere.scaling.core.job.preparer.splitter;
 
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.infra.metadata.schema.model.TableMetaData;
 import org.apache.shardingsphere.scaling.core.common.datasource.DataSourceManager;
 import org.apache.shardingsphere.scaling.core.common.datasource.MetaDataManager;
@@ -28,9 +28,11 @@ import org.apache.shardingsphere.scaling.core.config.DumperConfiguration;
 import org.apache.shardingsphere.scaling.core.config.InventoryDumperConfiguration;
 import org.apache.shardingsphere.scaling.core.config.TaskConfiguration;
 import org.apache.shardingsphere.scaling.core.job.JobContext;
+import org.apache.shardingsphere.scaling.core.job.JobStatus;
 import org.apache.shardingsphere.scaling.core.job.position.PlaceholderPosition;
 import org.apache.shardingsphere.scaling.core.job.position.PrimaryKeyPosition;
 import org.apache.shardingsphere.scaling.core.job.position.ScalingPosition;
+import org.apache.shardingsphere.scaling.core.job.progress.JobProgress;
 import org.apache.shardingsphere.scaling.core.job.task.ScalingTaskFactory;
 import org.apache.shardingsphere.scaling.core.job.task.inventory.InventoryTask;
 
@@ -42,6 +44,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -107,19 +110,28 @@ public final class InventoryTaskSplitter {
     
     private Collection<ScalingPosition<?>> getInventoryPositions(
             final JobContext jobContext, final InventoryDumperConfiguration dumperConfig, final DataSource dataSource, final MetaDataManager metaDataManager) {
-        if (null != jobContext.getInitProgress()) {
-            return jobContext.getInitProgress().getInventoryPosition(dumperConfig.getTableName()).values();
+        DatabaseType databaseType = dumperConfig.getDataSourceConfig().getDatabaseType();
+        JobProgress initProgress = jobContext.getInitProgress();
+        if (null != initProgress && initProgress.getStatus() != JobStatus.PREPARING_FAILURE) {
+            Collection<ScalingPosition<?>> result = jobContext.getInitProgress().getInventoryPosition(dumperConfig.getTableName()).values();
+            result.stream().findFirst().ifPresent(position -> {
+                if (position instanceof PrimaryKeyPosition) {
+                    String primaryKey = metaDataManager.getTableMetaData(dumperConfig.getTableName(), databaseType).getPrimaryKeyColumns().get(0);
+                    dumperConfig.setPrimaryKey(primaryKey);
+                }
+            });
+            return result;
         }
-        if (isSpiltByPrimaryKeyRange(metaDataManager, dumperConfig.getTableName())) {
-            String primaryKey = metaDataManager.getTableMetaData(dumperConfig.getTableName()).getPrimaryKeyColumns().get(0);
+        TableMetaData tableMetaData = metaDataManager.getTableMetaData(dumperConfig.getTableName(), databaseType);
+        if (isSpiltByPrimaryKeyRange(tableMetaData, dumperConfig.getTableName())) {
+            String primaryKey = tableMetaData.getPrimaryKeyColumns().get(0);
             dumperConfig.setPrimaryKey(primaryKey);
             return getPositionByPrimaryKeyRange(jobContext, dataSource, dumperConfig);
         }
-        return Lists.newArrayList(new PlaceholderPosition());
+        return Collections.singletonList(new PlaceholderPosition());
     }
     
-    private boolean isSpiltByPrimaryKeyRange(final MetaDataManager metaDataManager, final String tableName) {
-        TableMetaData tableMetaData = metaDataManager.getTableMetaData(tableName);
+    private boolean isSpiltByPrimaryKeyRange(final TableMetaData tableMetaData, final String tableName) {
         if (null == tableMetaData) {
             log.warn("Can't split range for table {}, reason: can not get table metadata ", tableName);
             return false;

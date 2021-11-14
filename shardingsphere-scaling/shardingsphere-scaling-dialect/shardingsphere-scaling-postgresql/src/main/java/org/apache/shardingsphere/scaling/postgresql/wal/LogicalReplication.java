@@ -18,6 +18,7 @@
 package org.apache.shardingsphere.scaling.postgresql.wal;
 
 import org.apache.shardingsphere.scaling.core.config.datasource.StandardJDBCDataSourceConfiguration;
+import org.apache.shardingsphere.scaling.postgresql.wal.decode.BaseLogSequenceNumber;
 import org.postgresql.PGConnection;
 import org.postgresql.PGProperty;
 import org.postgresql.replication.LogSequenceNumber;
@@ -38,7 +39,7 @@ public final class LogicalReplication {
      *
      * @param jdbcDataSourceConfig JDBC data source configuration
      * @return PostgreSQL connection
-     * @throws SQLException sql exception
+     * @throws SQLException SQL exception
      */
     public Connection createPgConnection(final StandardJDBCDataSourceConfiguration jdbcDataSourceConfig) throws SQLException {
         return createConnection(jdbcDataSourceConfig);
@@ -61,13 +62,13 @@ public final class LogicalReplication {
      * @param slotName slot name
      * @param startPosition start position
      * @return replication stream
-     * @throws SQLException sql exception
+     * @throws SQLException SQL exception
      */
-    public PGReplicationStream createReplicationStream(final Connection pgConnection, final String slotName, final LogSequenceNumber startPosition) throws SQLException {
+    public PGReplicationStream createReplicationStream(final Connection pgConnection, final String slotName, final BaseLogSequenceNumber startPosition) throws SQLException {
         return pgConnection.unwrap(PGConnection.class).getReplicationAPI()
                 .replicationStream()
                 .logical()
-                .withStartPosition(startPosition)
+                .withStartPosition((LogSequenceNumber) startPosition.get())
                 .withSlotName(slotName)
                 .withSlotOption("include-xids", true)
                 .withSlotOption("skip-empty-xacts", true)

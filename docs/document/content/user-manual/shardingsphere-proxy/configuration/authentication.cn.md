@@ -13,9 +13,9 @@ rules:
       - root@localhost:root  # <username>@<hostname>:<password>
       - sharding@:sharding
     provider:
-      type: NATIVE
+      type: ALL_PRIVILEGES_PERMITTED
 ```
 
 hostname 为 `%` 或空字符串，则代表不限制 host。
 
-provider 的 type 必须显式指定，具体实现可以参考 [5.11 Proxy](/cn/dev-manual/proxy)
+provider 的 type 必须显式指定，具体实现可以参考 [6.11 Proxy](/cn/dev-manual/proxy)

@@ -24,35 +24,54 @@ import org.apache.shardingsphere.encrypt.distsql.parser.statement.DropEncryptRul
 import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
 import org.apache.shardingsphere.infra.distsql.exception.rule.RequiredRuleMissedException;
 import org.apache.shardingsphere.infra.distsql.exception.rule.RuleDefinitionViolationException;
-import org.apache.shardingsphere.infra.metadata.resource.ShardingSphereResource;
+import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.mockito.Mockito.mock;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.hamcrest.CoreMatchers.is;
 
+@RunWith(MockitoJUnitRunner.class)
 public final class DropEncryptRuleStatementUpdaterTest {
+    
+    @Mock
+    private ShardingSphereMetaData shardingSphereMetaData;
     
     private final DropEncryptRuleStatementUpdater updater = new DropEncryptRuleStatementUpdater();
     
     @Test(expected = RequiredRuleMissedException.class)
     public void assertCheckSQLStatementWithoutCurrentRule() throws RuleDefinitionViolationException {
-        updater.checkSQLStatement("foo", createSQLStatement(), null, mock(ShardingSphereResource.class));
+        updater.checkSQLStatement(shardingSphereMetaData, createSQLStatement(), null);
     }
     
     @Test(expected = RequiredRuleMissedException.class)
     public void assertCheckSQLStatementWithoutToBeDroppedRule() throws RuleDefinitionViolationException {
-        updater.checkSQLStatement("foo", createSQLStatement(), new EncryptRuleConfiguration(Collections.emptyList(), Collections.emptyMap()), mock(ShardingSphereResource.class));
+        updater.checkSQLStatement(shardingSphereMetaData, createSQLStatement(), new EncryptRuleConfiguration(Collections.emptyList(), Collections.emptyMap()));
     }
     
     @Test
     public void assertUpdateCurrentRuleConfiguration() {
-        updater.updateCurrentRuleConfiguration(createSQLStatement(), createCurrentRuleConfiguration());
-        // TODO assert current rule configuration
+        EncryptRuleConfiguration encryptRuleConfiguration = createCurrentRuleConfiguration();
+        assertTrue(updater.updateCurrentRuleConfiguration(createSQLStatement(), encryptRuleConfiguration));
+        assertTrue(encryptRuleConfiguration.getEncryptors().isEmpty());
+    }
+    
+    @Test
+    public void assertUpdateCurrentRuleConfigurationWithInUsedEncryptor() {
+        EncryptRuleConfiguration encryptRuleConfiguration = createCurrentRuleConfigurationWithMultipleTableRules();
+        assertFalse(updater.updateCurrentRuleConfiguration(createSQLStatement(), encryptRuleConfiguration));
+        assertThat(encryptRuleConfiguration.getEncryptors().size(), is(1));
     }
     
     private DropEncryptRuleStatement createSQLStatement() {
@@ -61,9 +80,18 @@ public final class DropEncryptRuleStatementUpdaterTest {
     
     private EncryptRuleConfiguration createCurrentRuleConfiguration() {
         EncryptColumnRuleConfiguration columnRuleConfig = new EncryptColumnRuleConfiguration("user_id", "user_cipher", "", "user_plain", "t_encrypt_user_id_MD5");
-        EncryptTableRuleConfiguration tableRuleConfig = new EncryptTableRuleConfiguration("t_encrypt", Collections.singleton(columnRuleConfig));
+        EncryptTableRuleConfiguration tableRuleConfig = new EncryptTableRuleConfiguration("t_encrypt", Collections.singleton(columnRuleConfig), null);
         Map<String, ShardingSphereAlgorithmConfiguration> encryptors = new HashMap<>(1, 1);
         encryptors.put("t_encrypt_user_id_MD5", new ShardingSphereAlgorithmConfiguration("TEST", new Properties()));
         return new EncryptRuleConfiguration(new LinkedList<>(Collections.singleton(tableRuleConfig)), encryptors, true);
+    }
+    
+    private EncryptRuleConfiguration createCurrentRuleConfigurationWithMultipleTableRules() {
+        EncryptColumnRuleConfiguration columnRuleConfig = new EncryptColumnRuleConfiguration("user_id", "user_cipher", "", "user_plain", "t_encrypt_user_id_MD5");
+        EncryptTableRuleConfiguration tableRuleConfig = new EncryptTableRuleConfiguration("t_encrypt", Collections.singleton(columnRuleConfig), null);
+        Map<String, ShardingSphereAlgorithmConfiguration> encryptors = new HashMap<>(1, 1);
+        encryptors.put("t_encrypt_user_id_MD5", new ShardingSphereAlgorithmConfiguration("TEST", new Properties()));
+        return new EncryptRuleConfiguration(new LinkedList<>(Arrays.asList(tableRuleConfig, 
+                new EncryptTableRuleConfiguration("t_encrypt_another", Collections.singleton(columnRuleConfig), null))), encryptors, true);
     }
 }

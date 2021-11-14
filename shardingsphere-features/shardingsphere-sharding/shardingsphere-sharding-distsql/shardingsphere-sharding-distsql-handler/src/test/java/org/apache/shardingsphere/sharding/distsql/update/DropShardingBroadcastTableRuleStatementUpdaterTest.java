@@ -17,42 +17,63 @@
 
 package org.apache.shardingsphere.sharding.distsql.update;
 
+import org.apache.shardingsphere.infra.distsql.exception.DistSQLException;
 import org.apache.shardingsphere.infra.distsql.exception.rule.RequiredRuleMissedException;
-import org.apache.shardingsphere.infra.distsql.exception.rule.RuleDefinitionViolationException;
-import org.apache.shardingsphere.infra.metadata.resource.ShardingSphereResource;
+import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 import org.apache.shardingsphere.sharding.api.config.ShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingAutoTableRuleConfiguration;
 import org.apache.shardingsphere.sharding.api.config.rule.ShardingTableRuleConfiguration;
 import org.apache.shardingsphere.sharding.distsql.handler.update.DropShardingBroadcastTableRuleStatementUpdater;
 import org.apache.shardingsphere.sharding.distsql.parser.statement.DropShardingBroadcastTableRulesStatement;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.Collections;
 
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
+@RunWith(MockitoJUnitRunner.class)
 public final class DropShardingBroadcastTableRuleStatementUpdaterTest {
+    
+    @Mock
+    private ShardingSphereMetaData shardingSphereMetaData;
     
     private final DropShardingBroadcastTableRuleStatementUpdater updater = new DropShardingBroadcastTableRuleStatementUpdater();
     
     @Test(expected = RequiredRuleMissedException.class)
-    public void assertCheckSQLStatementWithoutCurrentRule() throws RuleDefinitionViolationException {
-        updater.checkSQLStatement("foo", createSQLStatement(), null, mock(ShardingSphereResource.class));
+    public void assertCheckSQLStatementWithoutCurrentRule() throws DistSQLException {
+        updater.checkSQLStatement(shardingSphereMetaData, createSQLStatement("t_order"), null);
     }
     
     @Test(expected = RequiredRuleMissedException.class)
-    public void assertCheckSQLStatementWithoutExistBroadcastTableRule() throws RuleDefinitionViolationException {
-        updater.checkSQLStatement("foo", createSQLStatement(), new ShardingRuleConfiguration(), mock(ShardingSphereResource.class));
+    public void assertCheckSQLStatementWithoutExistBroadcastTableRule() throws DistSQLException {
+        updater.checkSQLStatement(shardingSphereMetaData, createSQLStatement("t_order"), new ShardingRuleConfiguration());
+    }
+    
+    @Test(expected = RequiredRuleMissedException.class)
+    public void assertCheckSQLStatementWithBroadcastTableRuleAreNotTheSame() throws DistSQLException {
+        updater.checkSQLStatement(shardingSphereMetaData, createSQLStatement("t_order_item"), createCurrentRuleConfiguration());
     }
     
     @Test
-    public void assertUpdateCurrentRuleConfiguration() {
+    public void assertDropSpecifiedCurrentRuleConfiguration() {
         ShardingRuleConfiguration currentRuleConfig = createCurrentRuleConfiguration();
-        updater.updateCurrentRuleConfiguration(createSQLStatement(), currentRuleConfig);
+        updater.updateCurrentRuleConfiguration(createSQLStatement("t_order"), currentRuleConfig);
         assertTrue(currentRuleConfig.getBroadcastTables().isEmpty());
     }
     
-    private DropShardingBroadcastTableRulesStatement createSQLStatement() {
-        return new DropShardingBroadcastTableRulesStatement();
+    @Test
+    public void assertAllCurrentRuleConfiguration() {
+        ShardingRuleConfiguration currentRuleConfig = createCurrentRuleConfiguration();
+        updater.updateCurrentRuleConfiguration(createSQLStatement(null), currentRuleConfig);
+        assertTrue(currentRuleConfig.getBroadcastTables().isEmpty());
+    }
+    
+    private DropShardingBroadcastTableRulesStatement createSQLStatement(final String tableName) {
+        return null == tableName ? new DropShardingBroadcastTableRulesStatement(Collections.emptyList())
+                : new DropShardingBroadcastTableRulesStatement(Collections.singleton(tableName));
     }
     
     private ShardingRuleConfiguration createCurrentRuleConfiguration() {

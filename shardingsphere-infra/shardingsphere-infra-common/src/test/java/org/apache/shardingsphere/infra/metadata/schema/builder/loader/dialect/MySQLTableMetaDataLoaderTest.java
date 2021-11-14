@@ -21,7 +21,7 @@ import org.apache.shardingsphere.infra.metadata.schema.builder.spi.DialectTableM
 import org.apache.shardingsphere.infra.metadata.schema.model.ColumnMetaData;
 import org.apache.shardingsphere.infra.metadata.schema.model.IndexMetaData;
 import org.apache.shardingsphere.infra.metadata.schema.model.TableMetaData;
-import org.apache.shardingsphere.infra.spi.ShardingSphereServiceLoader;
+import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -45,11 +45,12 @@ public final class MySQLTableMetaDataLoaderTest {
     }
     
     @Test
-    public void assertLoadWithoutExistedTables() throws SQLException {
+    public void assertLoadWithoutTables() throws SQLException {
         DataSource dataSource = mockDataSource();
         ResultSet resultSet = mockTableMetaDataResultSet();
         when(dataSource.getConnection().prepareStatement(
-                "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, COLUMN_KEY, EXTRA, COLLATION_NAME FROM information_schema.columns WHERE TABLE_SCHEMA=?").executeQuery()).thenReturn(resultSet);
+                "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, COLUMN_KEY, EXTRA, COLLATION_NAME, ORDINAL_POSITION FROM information_schema.columns WHERE TABLE_SCHEMA=? ORDER BY ORDINAL_POSITION")
+                .executeQuery()).thenReturn(resultSet);
         ResultSet indexResultSet = mockIndexMetaDataResultSet();
         when(dataSource.getConnection().prepareStatement(
                 "SELECT TABLE_NAME, INDEX_NAME FROM information_schema.statistics WHERE TABLE_SCHEMA=? and TABLE_NAME IN ('tbl')").executeQuery()).thenReturn(indexResultSet);
@@ -57,17 +58,18 @@ public final class MySQLTableMetaDataLoaderTest {
     }
     
     @Test
-    public void assertLoadWithExistedTables() throws SQLException {
+    public void assertLoadWithTables() throws SQLException {
         DataSource dataSource = mockDataSource();
         ResultSet resultSet = mockTableMetaDataResultSet();
         when(dataSource.getConnection().prepareStatement(
-                "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, COLUMN_KEY, EXTRA, COLLATION_NAME FROM information_schema.columns WHERE TABLE_SCHEMA=? AND TABLE_NAME NOT IN ('existed_tbl')")
+                "SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, COLUMN_KEY, EXTRA, COLLATION_NAME, ORDINAL_POSITION FROM information_schema.columns WHERE TABLE_SCHEMA=? AND TABLE_NAME IN ('tbl') "
+                        + "ORDER BY ORDINAL_POSITION")
                 .executeQuery()).thenReturn(resultSet);
         ResultSet indexResultSet = mockIndexMetaDataResultSet();
         when(dataSource.getConnection().prepareStatement(
                 "SELECT TABLE_NAME, INDEX_NAME FROM information_schema.statistics WHERE TABLE_SCHEMA=? and TABLE_NAME IN ('tbl')")
                 .executeQuery()).thenReturn(indexResultSet);
-        assertTableMetaDataMap(getTableMetaDataLoader().load(dataSource, Collections.singletonList("existed_tbl")));
+        assertTableMetaDataMap(getTableMetaDataLoader().load(dataSource, Collections.singletonList("tbl")));
     }
     
     private DataSource mockDataSource() throws SQLException {
@@ -79,24 +81,24 @@ public final class MySQLTableMetaDataLoaderTest {
     
     private ResultSet mockTypeInfoResultSet() throws SQLException {
         ResultSet result = mock(ResultSet.class);
-        when(result.next()).thenReturn(true, true, false);
-        when(result.getString("TYPE_NAME")).thenReturn("int", "varchar");
-        when(result.getInt("DATA_TYPE")).thenReturn(4, 12);
+        when(result.next()).thenReturn(true, true, true, true, false);
+        when(result.getString("TYPE_NAME")).thenReturn("int", "varchar", "json", "geometry");
+        when(result.getInt("DATA_TYPE")).thenReturn(4, 12, -1, -2);
         return result;
     }
-    
+
     private ResultSet mockTableMetaDataResultSet() throws SQLException {
         ResultSet result = mock(ResultSet.class);
-        when(result.next()).thenReturn(true, true, false);
+        when(result.next()).thenReturn(true, true, true, true, false);
         when(result.getString("TABLE_NAME")).thenReturn("tbl");
-        when(result.getString("COLUMN_NAME")).thenReturn("id", "name");
-        when(result.getString("DATA_TYPE")).thenReturn("int", "varchar");
-        when(result.getString("COLUMN_KEY")).thenReturn("PRI", "");
-        when(result.getString("EXTRA")).thenReturn("auto_increment", "");
-        when(result.getString("COLLATION_NAME")).thenReturn("utf8", "utf8_general_ci");
+        when(result.getString("COLUMN_NAME")).thenReturn("id", "name", "doc", "geo");
+        when(result.getString("DATA_TYPE")).thenReturn("int", "varchar", "json", "geometry");
+        when(result.getString("COLUMN_KEY")).thenReturn("PRI", "", "", "");
+        when(result.getString("EXTRA")).thenReturn("auto_increment", "", "", "");
+        when(result.getString("COLLATION_NAME")).thenReturn("utf8", "utf8_general_ci", "utf8_general_ci");
         return result;
     }
-    
+
     private ResultSet mockIndexMetaDataResultSet() throws SQLException {
         ResultSet result = mock(ResultSet.class);
         when(result.next()).thenReturn(true, false);
@@ -104,7 +106,7 @@ public final class MySQLTableMetaDataLoaderTest {
         when(result.getString("TABLE_NAME")).thenReturn("tbl");
         return result;
     }
-    
+
     private DialectTableMetaDataLoader getTableMetaDataLoader() {
         for (DialectTableMetaDataLoader each : ShardingSphereServiceLoader.getSingletonServiceInstances(DialectTableMetaDataLoader.class)) {
             if ("MySQL".equals(each.getDatabaseType())) {
@@ -113,12 +115,14 @@ public final class MySQLTableMetaDataLoaderTest {
         }
         throw new IllegalStateException("Can not find MySQLTableMetaDataLoader");
     }
-    
+
     private void assertTableMetaDataMap(final Map<String, TableMetaData> actual) {
         assertThat(actual.size(), is(1));
-        assertThat(actual.get("tbl").getColumns().size(), is(2));
+        assertThat(actual.get("tbl").getColumns().size(), is(4));
         assertThat(actual.get("tbl").getColumnMetaData(0), is(new ColumnMetaData("id", 4, true, true, true)));
         assertThat(actual.get("tbl").getColumnMetaData(1), is(new ColumnMetaData("name", 12, false, false, false)));
+        assertThat(actual.get("tbl").getColumnMetaData(2), is(new ColumnMetaData("doc", -1, false, false, false)));
+        assertThat(actual.get("tbl").getColumnMetaData(3), is(new ColumnMetaData("geo", -2, false, false, false)));
         assertThat(actual.get("tbl").getIndexes().size(), is(1));
         assertThat(actual.get("tbl").getIndexes().get("id"), is(new IndexMetaData("id")));
     }

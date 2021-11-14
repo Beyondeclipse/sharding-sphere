@@ -138,8 +138,12 @@ queryExpression
 
 queryExpressionBody
     : queryPrimary
-    | queryExpressionParens UNION unionOption? (queryPrimary | queryExpressionParens)
-    | queryExpressionBody UNION unionOption? (queryPrimary | queryExpressionParens)
+    | queryExpressionParens unionClause
+    | queryExpressionBody unionClause
+    ;
+
+unionClause
+    : UNION unionOption? (queryPrimary | queryExpressionParens)
     ;
 
 queryExpressionParens
@@ -350,7 +354,7 @@ windowClause
     ;
 
 windowItem
-    : identifier AS LP_ windowSpecification RP_
+    : identifier AS windowSpecification
     ;
 
 subquery

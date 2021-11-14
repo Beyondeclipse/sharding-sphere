@@ -24,6 +24,7 @@ import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.BetweenE
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.BinaryOperationExpression;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.ExistsSubqueryExpression;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.ExpressionSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.FunctionSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.InExpression;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.ListExpression;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.NotExpression;
@@ -33,10 +34,12 @@ import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.simple.L
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.simple.ParameterMarkerExpressionSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.subquery.SubqueryExpressionSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.subquery.SubquerySegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.AggregationProjectionSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.item.ExpressionProjectionSegment;
 import org.apache.shardingsphere.test.sql.parser.parameterized.asserts.SQLCaseAssertContext;
 import org.apache.shardingsphere.test.sql.parser.parameterized.asserts.segment.SQLSegmentAssert;
 import org.apache.shardingsphere.test.sql.parser.parameterized.asserts.segment.column.ColumnAssert;
+import org.apache.shardingsphere.test.sql.parser.parameterized.asserts.segment.owner.OwnerAssert;
 import org.apache.shardingsphere.test.sql.parser.parameterized.asserts.segment.projection.ProjectionAssert;
 import org.apache.shardingsphere.test.sql.parser.parameterized.asserts.statement.dml.impl.SelectStatementAssert;
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.expr.ExpectedBetweenExpression;
@@ -50,6 +53,7 @@ import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.expr.simple.ExpectedLiteralExpression;
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.expr.simple.ExpectedParameterMarkerExpression;
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.expr.simple.ExpectedSubquery;
+import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.function.ExpectedFunction;
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.sql.SQLCaseType;
 
 import java.util.Iterator;
@@ -251,8 +255,7 @@ public final class ExpressionAssert {
             while (actualItems.hasNext()) {
                 assertExpression(assertContext, actualItems.next(), expectedItems.next());
             }
-            //TODO PostgreSQL list expression start index was incorrect.
-//            SQLSegmentAssert.assertIs(assertContext, actual, expected);
+            SQLSegmentAssert.assertIs(assertContext, actual, expected);
         }
     }
 
@@ -274,6 +277,30 @@ public final class ExpressionAssert {
             assertThat(assertContext.getText("Between expression not value assert error."),
                     actual.isNot(), is(expected.isNot()));
             SQLSegmentAssert.assertIs(assertContext, actual, expected);
+        }
+    }
+    
+    /**
+     * Assert function.
+     *
+     * @param assertContext assert context
+     * @param actual actual function segment
+     * @param expected expected function segment
+     */
+    public static void assertFunction(final SQLCaseAssertContext assertContext, final FunctionSegment actual, final ExpectedFunction expected) {
+        SQLSegmentAssert.assertIs(assertContext, actual, expected);
+        assertThat(assertContext.getText("Function method name assertion error: "), actual.getFunctionName(), is(expected.getFunctionName()));
+        String expectedText = SQLCaseType.Literal == assertContext.getSqlCaseType() && null != expected.getLiteralText()
+                ? expected.getLiteralText() : expected.getText();
+        assertThat(assertContext.getText("Function text name assertion error: "), actual.getText(), is(expectedText));
+        assertThat(assertContext.getText("Function parameter size assertion error: "), actual.getParameters().size(), is(expected.getParameters().size()));
+        Iterator<ExpectedExpression> expectedIterator = expected.getParameters().iterator();
+        Iterator<ExpressionSegment> actualIterator = actual.getParameters().iterator();
+        while (expectedIterator.hasNext()) {
+            ExpressionAssert.assertExpression(assertContext, actualIterator.next(), expectedIterator.next());
+        }
+        if (expected.getOwner() != null) {
+            OwnerAssert.assertIs(assertContext, actual.getOwner(), expected.getOwner());
         }
     }
 
@@ -328,6 +355,11 @@ public final class ExpressionAssert {
         } else if (actual instanceof ExpressionProjectionSegment) {
             ProjectionAssert.assertProjection(assertContext,
                     (ExpressionProjectionSegment) actual, expected.getExpressionProjection());
+        } else if (actual instanceof AggregationProjectionSegment) {
+            ProjectionAssert.assertProjection(assertContext,
+                    (AggregationProjectionSegment) actual, expected.getAggregationProjection());
+        } else if (actual instanceof FunctionSegment) {
+            assertFunction(assertContext, (FunctionSegment) actual, expected.getFunction());
         } else {
             throw new UnsupportedOperationException(
                     String.format("Unsupported expression  : %s.", actual.getClass().getName()));

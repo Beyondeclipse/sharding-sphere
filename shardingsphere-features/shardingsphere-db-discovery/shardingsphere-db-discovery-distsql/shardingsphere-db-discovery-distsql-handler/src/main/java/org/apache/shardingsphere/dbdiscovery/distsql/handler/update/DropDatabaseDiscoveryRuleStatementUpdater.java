@@ -21,10 +21,10 @@ import com.google.common.base.Preconditions;
 import org.apache.shardingsphere.dbdiscovery.api.config.DatabaseDiscoveryRuleConfiguration;
 import org.apache.shardingsphere.dbdiscovery.api.config.rule.DatabaseDiscoveryDataSourceRuleConfiguration;
 import org.apache.shardingsphere.dbdiscovery.distsql.parser.statement.DropDatabaseDiscoveryRuleStatement;
-import org.apache.shardingsphere.infra.distsql.update.RDLDropUpdater;
+import org.apache.shardingsphere.infra.distsql.update.RuleDefinitionDropUpdater;
 import org.apache.shardingsphere.infra.distsql.exception.rule.RequiredRuleMissedException;
 import org.apache.shardingsphere.infra.distsql.exception.rule.RuleDefinitionViolationException;
-import org.apache.shardingsphere.infra.metadata.resource.ShardingSphereResource;
+import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -33,11 +33,12 @@ import java.util.stream.Collectors;
 /**
  * Drop database discovery rule statement updater.
  */
-public final class DropDatabaseDiscoveryRuleStatementUpdater implements RDLDropUpdater<DropDatabaseDiscoveryRuleStatement, DatabaseDiscoveryRuleConfiguration> {
+public final class DropDatabaseDiscoveryRuleStatementUpdater implements RuleDefinitionDropUpdater<DropDatabaseDiscoveryRuleStatement, DatabaseDiscoveryRuleConfiguration> {
     
     @Override
-    public void checkSQLStatement(final String schemaName, final DropDatabaseDiscoveryRuleStatement sqlStatement, 
-                                  final DatabaseDiscoveryRuleConfiguration currentRuleConfig, final ShardingSphereResource resource) throws RuleDefinitionViolationException {
+    public void checkSQLStatement(final ShardingSphereMetaData shardingSphereMetaData, final DropDatabaseDiscoveryRuleStatement sqlStatement, 
+                                  final DatabaseDiscoveryRuleConfiguration currentRuleConfig) throws RuleDefinitionViolationException {
+        String schemaName = shardingSphereMetaData.getName();
         checkCurrentRuleConfiguration(schemaName, currentRuleConfig);
         checkToBeDroppedRuleNames(schemaName, sqlStatement, currentRuleConfig);
     }
@@ -69,8 +70,13 @@ public final class DropDatabaseDiscoveryRuleStatementUpdater implements RDLDropU
         Optional<DatabaseDiscoveryDataSourceRuleConfiguration> dataSourceRuleConfig = currentRuleConfig.getDataSources().stream().filter(dataSource -> dataSource.getName().equals(ruleName)).findAny();
         Preconditions.checkState(dataSourceRuleConfig.isPresent());
         currentRuleConfig.getDataSources().remove(dataSourceRuleConfig.get());
-        // TODO Do we need to check DiscoveryType not in use before drop it? 
-        currentRuleConfig.getDiscoveryTypes().remove(dataSourceRuleConfig.get().getDiscoveryTypeName());
+        if (isDiscoveryTypeNotInUse(currentRuleConfig, dataSourceRuleConfig.get().getDiscoveryTypeName())) {
+            currentRuleConfig.getDiscoveryTypes().remove(dataSourceRuleConfig.get().getDiscoveryTypeName());
+        }
+    }
+    
+    private boolean isDiscoveryTypeNotInUse(final DatabaseDiscoveryRuleConfiguration currentRuleConfig, final String toBeDroppedDiscoveryTypeName) {
+        return !currentRuleConfig.getDataSources().stream().filter(each -> each.getDiscoveryTypeName().equals(toBeDroppedDiscoveryTypeName)).findAny().isPresent();
     }
     
     @Override

@@ -31,6 +31,7 @@ import org.apache.shardingsphere.scaling.core.job.task.inventory.InventoryTaskPr
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -51,7 +52,6 @@ public final class JobProgress {
     
     private Map<String, IncrementalTaskProgress> incrementalTaskProgressMap;
     
-    
     /**
      * Init by string data.
      *
@@ -68,8 +68,9 @@ public final class JobProgress {
      * @param dataSourceName data source name
      * @return incremental position
      */
-    public ScalingPosition<?> getIncrementalPosition(final String dataSourceName) {
-        return incrementalTaskProgressMap.get(dataSourceName).getPosition();
+    public Optional<ScalingPosition<?>> getIncrementalPosition(final String dataSourceName) {
+        IncrementalTaskProgress progress = incrementalTaskProgressMap.get(dataSourceName);
+        return Optional.ofNullable(null != progress ? progress.getPosition() : null);
     }
     
     /**
@@ -112,14 +113,14 @@ public final class JobProgress {
     }
     
     /**
-     * Get incremental delay milliseconds.
+     * Get incremental latest active time milliseconds.
      *
-     * @return average delay
+     * @return latest active time, <code>0</code> is there is no activity
      */
-    public long getIncrementalDelayMilliseconds() {
+    public long getIncrementalLatestActiveTimeMillis() {
         List<Long> delays = incrementalTaskProgressMap.values().stream()
-                .map(each -> each.getIncrementalTaskDelay().getDelayMilliseconds())
+                .map(each -> each.getIncrementalTaskDelay().getLatestActiveTimeMillis())
                 .collect(Collectors.toList());
-        return delays.isEmpty() || delays.contains(-1L) ? -1L : delays.stream().reduce(Long::sum).orElse(0L) / delays.size();
+        return delays.stream().reduce(Long::max).orElse(0L);
     }
 }

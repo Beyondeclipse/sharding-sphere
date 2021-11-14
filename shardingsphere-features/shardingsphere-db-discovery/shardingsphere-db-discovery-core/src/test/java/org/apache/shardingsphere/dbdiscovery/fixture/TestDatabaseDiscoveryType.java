@@ -22,30 +22,36 @@ import org.apache.shardingsphere.dbdiscovery.spi.DatabaseDiscoveryType;
 import javax.sql.DataSource;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Properties;
 
 public final class TestDatabaseDiscoveryType implements DatabaseDiscoveryType {
     
     @Override
-    public void checkDatabaseDiscoveryConfig(final Map<String, DataSource> dataSourceMap, final String schemaName) {
+    public void checkDatabaseDiscoveryConfiguration(final String schemaName, final Map<String, DataSource> dataSourceMap) {
     }
     
     @Override
-    public void updatePrimaryDataSource(final Map<String, DataSource> activeDataSourceMap, final String schemaName, final Collection<String> disabledDataSourceNames,
+    public void updatePrimaryDataSource(final String schemaName, final Map<String, DataSource> activeDataSourceMap, final Collection<String> disabledDataSourceNames,
                                         final String groupName, final String primaryDataSourceName) {
     }
     
     @Override
-    public void updateMemberState(final Map<String, DataSource> dataSourceMap, final String schemaName, final Collection<String> disabledDataSourceNames) {
+    public void updateMemberState(final String schemaName, final Map<String, DataSource> dataSourceMap, final Collection<String> disabledDataSourceNames) {
     }
     
     @Override
-    public void startPeriodicalUpdate(final Map<String, DataSource> dataSourceMap, final String schemaName, final Collection<String> disabledDataSourceNames,
+    public void startPeriodicalUpdate(final String schemaName, final Map<String, DataSource> dataSourceMap, final Collection<String> disabledDataSourceNames,
                                       final String groupName, final String primaryDataSourceName) {
     }
     
     @Override
     public String getPrimaryDataSource() {
         return "primary";
+    }
+    
+    @Override
+    public void updateProperties(final String groupName, final Properties props) {
+    
     }
     
     @Override

@@ -23,14 +23,15 @@ import org.apache.shardingsphere.dbdiscovery.distsql.handler.converter.DatabaseD
 import org.apache.shardingsphere.dbdiscovery.distsql.parser.segment.DatabaseDiscoveryRuleSegment;
 import org.apache.shardingsphere.dbdiscovery.distsql.parser.statement.CreateDatabaseDiscoveryRuleStatement;
 import org.apache.shardingsphere.dbdiscovery.spi.DatabaseDiscoveryType;
-import org.apache.shardingsphere.infra.distsql.update.RDLCreateUpdater;
 import org.apache.shardingsphere.infra.distsql.exception.DistSQLException;
 import org.apache.shardingsphere.infra.distsql.exception.resource.RequiredResourceMissedException;
-import org.apache.shardingsphere.infra.distsql.exception.rule.InvalidAlgorithmConfigurationException;
 import org.apache.shardingsphere.infra.distsql.exception.rule.DuplicateRuleException;
+import org.apache.shardingsphere.infra.distsql.exception.rule.InvalidAlgorithmConfigurationException;
+import org.apache.shardingsphere.infra.distsql.update.RuleDefinitionCreateUpdater;
+import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 import org.apache.shardingsphere.infra.metadata.resource.ShardingSphereResource;
-import org.apache.shardingsphere.infra.spi.ShardingSphereServiceLoader;
-import org.apache.shardingsphere.infra.spi.typed.TypedSPIRegistry;
+import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
+import org.apache.shardingsphere.spi.typed.TypedSPIRegistry;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -41,7 +42,7 @@ import java.util.stream.Collectors;
 /**
  * Create database discovery rule statement updater.
  */
-public final class CreateDatabaseDiscoveryRuleStatementUpdater implements RDLCreateUpdater<CreateDatabaseDiscoveryRuleStatement, DatabaseDiscoveryRuleConfiguration> {
+public final class CreateDatabaseDiscoveryRuleStatementUpdater implements RuleDefinitionCreateUpdater<CreateDatabaseDiscoveryRuleStatement, DatabaseDiscoveryRuleConfiguration> {
     
     static {
         // TODO consider about register once only
@@ -49,10 +50,11 @@ public final class CreateDatabaseDiscoveryRuleStatementUpdater implements RDLCre
     }
     
     @Override
-    public void checkSQLStatement(final String schemaName, final CreateDatabaseDiscoveryRuleStatement sqlStatement, 
-                                  final DatabaseDiscoveryRuleConfiguration currentRuleConfig, final ShardingSphereResource resource) throws DistSQLException {
+    public void checkSQLStatement(final ShardingSphereMetaData shardingSphereMetaData, final CreateDatabaseDiscoveryRuleStatement sqlStatement, 
+                                  final DatabaseDiscoveryRuleConfiguration currentRuleConfig) throws DistSQLException {
+        String schemaName = shardingSphereMetaData.getName();
         checkDuplicateRuleNames(schemaName, sqlStatement, currentRuleConfig);
-        checkToBeCreatedResources(schemaName, sqlStatement, resource);
+        checkToBeCreatedResources(schemaName, sqlStatement, shardingSphereMetaData.getResource());
         checkToBeCreatedDiscoverTypes(sqlStatement);
     }
     

@@ -21,7 +21,6 @@ import com.google.common.base.Preconditions;
 import com.zaxxer.hikari.HikariConfig;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shardingsphere.infra.spi.ShardingSphereServiceLoader;
 import org.apache.shardingsphere.scaling.core.common.channel.Channel;
 import org.apache.shardingsphere.scaling.core.common.constant.ScalingConstant;
 import org.apache.shardingsphere.scaling.core.common.datasource.DataSourceFactory;
@@ -49,6 +48,7 @@ import org.apache.shardingsphere.scaling.mysql.client.MySQLClient;
 import org.apache.shardingsphere.scaling.mysql.component.column.metadata.MySQLColumnMetaData;
 import org.apache.shardingsphere.scaling.mysql.component.column.metadata.MySQLColumnMetaDataLoader;
 import org.apache.shardingsphere.scaling.mysql.component.column.value.ValueHandler;
+import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
 
 import java.io.Serializable;
 import java.security.SecureRandom;
@@ -98,16 +98,20 @@ public final class MySQLIncrementalDumper extends AbstractScalingExecutor implem
     
     private void dump() {
         HikariConfig hikariConfig = ((StandardJDBCDataSourceConfiguration) dumperConfig.getDataSourceConfig()).getHikariConfig();
+        log.info("incremental dump, jdbcUrl={}", hikariConfig.getJdbcUrl());
         JdbcUri uri = new JdbcUri(hikariConfig.getJdbcUrl());
         MySQLClient client = new MySQLClient(new ConnectInfo(random.nextInt(), uri.getHostname(), uri.getPort(), hikariConfig.getUsername(), hikariConfig.getPassword()));
         client.connect();
         client.subscribe(binlogPosition.getFilename(), binlogPosition.getPosition());
+        int eventCount = 0;
         while (isRunning()) {
             AbstractBinlogEvent event = client.poll();
             if (null != event) {
                 handleEvent(uri, event);
+                eventCount++;
             }
         }
+        log.info("incremental dump, eventCount={}", eventCount);
         pushRecord(new FinishedRecord(new PlaceholderPosition()));
     }
     

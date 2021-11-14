@@ -57,27 +57,27 @@ public final class DatabaseDiscoveryDataSourceRuleTest {
     
     @Test
     public void assertGetDataSourceNamesWithDisabledDataSourceNames() {
-        databaseDiscoveryDataSourceRule.updateDisabledDataSourceNames("ds_0", true);
+        databaseDiscoveryDataSourceRule.disableDataSource("ds_0");
         assertThat(databaseDiscoveryDataSourceRule.getDataSourceNames(), is(Collections.singletonList("ds_1")));
     }
     
     @Test
     public void assertUpdateDisabledDataSourceNamesForDisabled() {
-        databaseDiscoveryDataSourceRule.updateDisabledDataSourceNames("ds_0", true);
+        databaseDiscoveryDataSourceRule.disableDataSource("ds_0");
         assertThat(databaseDiscoveryDataSourceRule.getDataSourceNames(), is(Collections.singletonList("ds_1")));
     }
     
     @Test
     public void assertUpdateDisabledDataSourceNamesForEnabled() {
-        databaseDiscoveryDataSourceRule.updateDisabledDataSourceNames("ds_0", true);
-        databaseDiscoveryDataSourceRule.updateDisabledDataSourceNames("ds_0", false);
+        databaseDiscoveryDataSourceRule.disableDataSource("ds_0");
+        databaseDiscoveryDataSourceRule.enableDataSource("ds_0");
         assertThat(databaseDiscoveryDataSourceRule.getDataSourceNames(), is(Arrays.asList("ds_0", "ds_1")));
     }
     
     @Test
     public void assertGetDataSourceMapper() {
         Map<String, Collection<String>> actual = databaseDiscoveryDataSourceRule.getDataSourceMapper();
-        Map<String, Collection<String>> expected = ImmutableMap.of("test_pr", Arrays.asList("ds_0", "ds_1"));
+        Map<String, Collection<String>> expected = ImmutableMap.of("ds_0", Collections.singletonList("ds_0"), "ds_1", Collections.singletonList("ds_1"));
         assertThat(actual, is(expected));
     }
 }

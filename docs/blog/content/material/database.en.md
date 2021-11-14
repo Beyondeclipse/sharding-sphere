@@ -1,10 +1,8 @@
 +++
 title = "How to construct the distributed database"
-weight = 4
+weight = 10
 chapter = true
 +++
-
-## How we build a distributed database
 
 Author | Liang Zhang
 

@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.elasticjob.infra.pojo.JobConfigurationPOJO;
 import org.apache.shardingsphere.elasticjob.lite.api.bootstrap.impl.OneOffJobBootstrap;
-import org.apache.shardingsphere.governance.repository.api.listener.DataChangedEvent;
+import org.apache.shardingsphere.mode.repository.cluster.listener.DataChangedEvent;
 import org.apache.shardingsphere.infra.yaml.engine.YamlEngine;
 import org.apache.shardingsphere.scaling.core.api.ScalingAPIFactory;
 import org.apache.shardingsphere.scaling.core.common.constant.ScalingConstant;
@@ -58,6 +58,7 @@ public final class ScalingJobExecutor extends AbstractScalingExecutor {
             }
             JobConfigurationPOJO jobConfigPOJO = jobConfigPOJOOptional.get();
             if (DataChangedEvent.Type.DELETED == event.getType() || jobConfigPOJO.isDisabled()) {
+                log.info("remove and stop {}", jobConfigPOJO.getJobName());
                 EXECUTING_JOBS.remove(jobConfigPOJO.getJobName());
                 JobSchedulerCenter.stop(Long.parseLong(jobConfigPOJO.getJobName()));
                 return;
@@ -76,7 +77,7 @@ public final class ScalingJobExecutor extends AbstractScalingExecutor {
     private Optional<JobConfigurationPOJO> getJobConfigPOJO(final DataChangedEvent event) {
         try {
             if (CONFIG_PATTERN.matcher(event.getKey()).matches()) {
-                log.info("{} job config: {} = {}", event.getType(), event.getKey(), event.getValue());
+                log.info("{} job config: {}", event.getType(), event.getKey());
                 return Optional.of(YamlEngine.unmarshal(event.getValue(), JobConfigurationPOJO.class));
             }
             // CHECKSTYLE:OFF
@@ -89,7 +90,10 @@ public final class ScalingJobExecutor extends AbstractScalingExecutor {
     
     private void execute(final JobConfigurationPOJO jobConfigPOJO) {
         if (EXECUTING_JOBS.add(jobConfigPOJO.getJobName())) {
+            log.info("{} added to executing jobs success", jobConfigPOJO.getJobName());
             new OneOffJobBootstrap(ScalingAPIFactory.getRegistryCenter(), new ScalingJob(), jobConfigPOJO.toJobConfiguration()).execute();
+        } else {
+            log.info("{} added to executing jobs failed since it already exists", jobConfigPOJO.getJobName());
         }
     }
 }

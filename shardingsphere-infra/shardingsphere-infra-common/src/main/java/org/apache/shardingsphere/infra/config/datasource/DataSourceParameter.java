@@ -21,6 +21,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Properties;
+
 /**
  * Data source parameters.
  */
@@ -29,23 +31,35 @@ import lombok.Setter;
 @EqualsAndHashCode
 public final class DataSourceParameter {
     
+    public static final long DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS = 30 * 1000L;
+    
+    public static final long DEFAULT_IDLE_TIMEOUT_MILLISECONDS = 60 * 1000L;
+    
+    public static final long DEFAULT_MAX_LIFETIME_MILLISECONDS = 30 * 60 * 1000L;
+    
+    public static final int DEFAULT_MAX_POOL_SIZE = 50;
+    
+    public static final int DEFAULT_MIN_POOL_SIZE = 1;
+    
+    public static final boolean DEFAULT_READ_ONLY = false;
+    
     private String url;
     
     private String username;
     
     private String password;
     
-    private long connectionTimeoutMilliseconds = 30 * 1000L;
+    private long connectionTimeoutMilliseconds = DEFAULT_CONNECTION_TIMEOUT_MILLISECONDS;
     
-    private long idleTimeoutMilliseconds = 60 * 1000L;
+    private long idleTimeoutMilliseconds = DEFAULT_IDLE_TIMEOUT_MILLISECONDS;
     
-    private long maxLifetimeMilliseconds;
+    private long maxLifetimeMilliseconds = DEFAULT_MAX_LIFETIME_MILLISECONDS;
     
-    private int maxPoolSize = 50;
+    private int maxPoolSize = DEFAULT_MAX_POOL_SIZE;
     
-    private int minPoolSize = 1;
+    private int minPoolSize = DEFAULT_MIN_POOL_SIZE;
     
-    private long maintenanceIntervalMilliseconds = 30 * 1000L;
+    private boolean readOnly = DEFAULT_READ_ONLY;
     
-    private boolean readOnly;
+    private Properties customPoolProps;
 }

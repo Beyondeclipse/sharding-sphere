@@ -1444,10 +1444,6 @@ startStandbyClause
     : START LOGICAL STANDBY APPLY IMMEDIATE? NODELAY? (NEW PRIMARY dbLink | INITIAL scnValue? | (SKIP_SYMBOL FAILED TRANSACTION | FINISH))?
     ;
 
-scnValue
-    : literals
-    ;
-
 stopStandbyClause
     : (STOP | ABORT) LOGICAL STANDBY APPLY
     ;
@@ -1823,7 +1819,7 @@ functionAssociation
     | PACKAGES packageName (COMMA_ packageName)*
     | TYPES typeName (COMMA_ typeName)*
     | INDEXES indexName (COMMA_ indexName)*
-    | INDEXTYPES indexTypeName (COMMA_ indexTypeName)*) 
+    | INDEXTYPES indextypeName (COMMA_ indextypeName)*) 
     (usingStatisticsType | defaultCostClause (COMMA_ defaultSelectivityClause)? | defaultSelectivityClause (COMMA_ defaultCostClause)?)
     ;
 
@@ -1841,4 +1837,92 @@ defaultCostClause
 
 defaultSelectivityClause
     : DEFAULT SELECTIVITY defaultSelectivity
+    ;
+
+disassociateStatistics
+    : DISASSOCIATE STATISTICS FROM 
+    (COLUMNS tableName DOT_ columnName (COMMA_ tableName DOT_ columnName)*
+    | FUNCTIONS function (COMMA_ function)*
+    | PACKAGES packageName (COMMA_ packageName)*
+    | TYPES typeName (COMMA_ typeName)*
+    | INDEXES indexName (COMMA_ indexName)*
+    | INDEXTYPES indextypeName (COMMA_ indextypeName)*) FORCE?
+    ;
+
+audit
+    : AUDIT (auditPolicyClause | contextClause)
+    ;
+
+noAudit
+    : NOAUDIT (noAuditPolicyClause | contextClause)
+    ;
+
+auditPolicyClause
+    : POLICY policyName (byUsersWithRoles | (BY | EXCEPT) userName (COMMA_ userName)*)? (WHENEVER NOT? SUCCESSFUL)?
+    ;
+
+noAuditPolicyClause
+    : POLICY policyName (byUsersWithRoles | BY userName (COMMA_ userName)*)? (WHENEVER NOT? SUCCESSFUL)?
+    ;
+
+byUsersWithRoles
+    : BY USERS WITH GRANTED ROLES roleName (COMMA_ roleName)*
+    ;
+
+contextClause
+    : contextNamespaceAttributesClause (COMMA_ contextNamespaceAttributesClause)* (BY userName (COMMA_ userName)*)?
+    ;
+
+contextNamespaceAttributesClause
+    : CONTEXT NAMESPACE namespace ATTRIBUTES attributeName (COMMA_ attributeName)*
+    ;
+
+comment
+    : COMMENT ON (
+    | AUDIT POLICY policyName
+    | COLUMN (tableName | viewName | materializedViewName) DOT_ columnName
+    | EDITION editionName
+    | INDEXTYPE indextypeName
+    | MATERIALIZED VIEW materializedViewName
+    | MINING MODEL modelName
+    | OPERATOR operatorName
+    | TABLE (tableName | viewName)
+    ) IS STRING_
+    ;
+
+flashbackDatabase
+    : FLASHBACK STANDBY? PLUGGABLE? DATABASE databaseName?
+    ( TO (scnTimestampClause | restorePointClause) 
+    | TO BEFORE (scnTimestampClause | RESETLOGS))
+    ;
+
+scnTimestampClause
+    : (SCN | TIMESTAMP) scnTimestampExpr
+    ;
+
+restorePointClause
+    : RESTORE POINT restorePoint
+    ;
+
+flashbackTable
+    : FLASHBACK TABLE tableName TO (
+    (scnTimestampClause | restorePointClause) ((ENABLE | DISABLE) TRIGGERS)?
+    | BEFORE DROP renameToTable? )
+    ;
+
+renameToTable
+    : RENAME TO tableName
+    ;
+
+purge
+    : PURGE (TABLE tableName
+    | INDEX indexName
+    | TABLESPACE tablespaceName (USER userName)?
+    | TABLESPACE SET tablespaceSetName (USER userName)?
+    | RECYCLEBIN
+    | DBA_RECYCLEBIN)
+    ;
+
+rename
+    : RENAME name TO name
     ;

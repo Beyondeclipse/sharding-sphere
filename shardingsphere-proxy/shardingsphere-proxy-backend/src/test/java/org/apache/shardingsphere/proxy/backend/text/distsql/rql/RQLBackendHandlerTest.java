@@ -18,8 +18,9 @@
 package org.apache.shardingsphere.proxy.backend.text.distsql.rql;
 
 import org.apache.shardingsphere.distsql.parser.statement.rql.RQLStatement;
-import org.apache.shardingsphere.infra.context.metadata.MetaDataContexts;
-import org.apache.shardingsphere.infra.distsql.query.RQLResultSet;
+import org.apache.shardingsphere.mode.manager.ContextManager;
+import org.apache.shardingsphere.mode.metadata.MetaDataContexts;
+import org.apache.shardingsphere.infra.distsql.query.DistSQLResultSet;
 import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 import org.apache.shardingsphere.infra.metadata.rule.ShardingSphereRuleMetaData;
 import org.apache.shardingsphere.proxy.backend.communication.jdbc.connection.BackendConnection;
@@ -27,7 +28,6 @@ import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.response.header.ResponseHeader;
 import org.apache.shardingsphere.proxy.backend.response.header.query.QueryResponseHeader;
 import org.apache.shardingsphere.proxy.backend.response.header.query.impl.QueryHeader;
-import org.apache.shardingsphere.transaction.context.TransactionContexts;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,6 +40,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,12 +54,14 @@ public final class RQLBackendHandlerTest {
         ShardingSphereMetaData shardingSphereMetaData = mock(ShardingSphereMetaData.class);
         when(shardingSphereMetaData.getRuleMetaData()).thenReturn(ruleMetaData);
         when(metaDataContexts.getMetaData("test")).thenReturn(shardingSphereMetaData);
-        ProxyContext.getInstance().init(metaDataContexts, mock(TransactionContexts.class));
+        ContextManager contextManager = mock(ContextManager.class, RETURNS_DEEP_STUBS);
+        when(contextManager.getMetaDataContexts()).thenReturn(metaDataContexts);
+        ProxyContext.getInstance().init(contextManager);
     }
     
     @Test
     public void assertExecute() {
-        RQLResultSet resultSet = mock(RQLResultSet.class);
+        DistSQLResultSet resultSet = mock(DistSQLResultSet.class);
         when(resultSet.getColumnNames()).thenReturn(Arrays.asList("foo", "bar"));
         RQLBackendHandler handler = new RQLBackendHandler(mock(RQLStatement.class), mock(BackendConnection.class), resultSet);
         ResponseHeader responseHeader = handler.execute("test", mock(RQLStatement.class));
@@ -84,7 +87,7 @@ public final class RQLBackendHandlerTest {
     
     @Test
     public void assertGetRowData() {
-        RQLResultSet resultSet = mock(RQLResultSet.class);
+        DistSQLResultSet resultSet = mock(DistSQLResultSet.class);
         when(resultSet.getRowData()).thenReturn(Arrays.asList("foo_value", "bar_value"));
         RQLBackendHandler handler = new RQLBackendHandler(mock(RQLStatement.class), mock(BackendConnection.class), resultSet);
         handler.execute("test", mock(RQLStatement.class));

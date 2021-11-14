@@ -20,23 +20,25 @@ package org.apache.shardingsphere.proxy.backend.communication.jdbc.connection;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import io.netty.util.AttributeMap;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.db.protocol.parameter.TypeUnspecifiedSQLParameter;
 import org.apache.shardingsphere.infra.database.type.DatabaseType;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
 import org.apache.shardingsphere.infra.executor.sql.execute.engine.ConnectionMode;
-import org.apache.shardingsphere.infra.executor.sql.federate.execute.FederateExecutor;
+import org.apache.shardingsphere.infra.executor.sql.federate.FederationExecutor;
 import org.apache.shardingsphere.infra.executor.sql.prepare.driver.jdbc.ExecutorJDBCManager;
 import org.apache.shardingsphere.infra.executor.sql.prepare.driver.jdbc.StatementOption;
 import org.apache.shardingsphere.infra.metadata.user.Grantee;
-import org.apache.shardingsphere.infra.spi.ShardingSphereServiceLoader;
-import org.apache.shardingsphere.infra.spi.typed.TypedSPIRegistry;
 import org.apache.shardingsphere.proxy.backend.communication.DatabaseCommunicationEngine;
 import org.apache.shardingsphere.proxy.backend.communication.SQLStatementSchemaHolder;
 import org.apache.shardingsphere.proxy.backend.communication.jdbc.statement.StatementMemoryStrictlyFetchSizeSetter;
 import org.apache.shardingsphere.proxy.backend.communication.jdbc.transaction.TransactionStatus;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
+import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
+import org.apache.shardingsphere.spi.typed.TypedSPI;
 import org.apache.shardingsphere.transaction.core.TransactionType;
 
 import java.sql.Connection;
@@ -49,30 +51,30 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Backend connection.
  */
 @Getter
+@Setter
 public final class BackendConnection implements ExecutorJDBCManager {
     
     static {
         ShardingSphereServiceLoader.register(StatementMemoryStrictlyFetchSizeSetter.class);
     }
     
+    @Setter(AccessLevel.NONE)
     private volatile String schemaName;
     
-    @Setter
     private volatile int connectionId;
     
-    @Setter
     private volatile Grantee grantee;
     
-    @Setter
-    private volatile FederateExecutor federateExecutor;
+    private volatile FederationExecutor federationExecutor;
     
     private final Multimap<String, Connection> cachedConnections = LinkedHashMultimap.create();
     
@@ -88,8 +90,15 @@ public final class BackendConnection implements ExecutorJDBCManager {
     
     private final TransactionStatus transactionStatus;
     
-    public BackendConnection(final TransactionType initialTransactionType) {
+    private final Map<String, StatementMemoryStrictlyFetchSizeSetter> fetchSizeSetters;
+    
+    private final AttributeMap attributeMap;
+    
+    public BackendConnection(final TransactionType initialTransactionType, final AttributeMap attributeMap) {
         transactionStatus = new TransactionStatus(initialTransactionType);
+        fetchSizeSetters = ShardingSphereServiceLoader.getSingletonServiceInstances(StatementMemoryStrictlyFetchSizeSetter.class).stream()
+                .collect(Collectors.toMap(TypedSPI::getType, Function.identity()));
+        this.attributeMap = attributeMap;
     }
     
     /**
@@ -98,6 +107,9 @@ public final class BackendConnection implements ExecutorJDBCManager {
      * @param schemaName schema name
      */
     public void setCurrentSchema(final String schemaName) {
+        if (null != schemaName && schemaName.equals(this.schemaName)) {
+            return;
+        }
         if (transactionStatus.isInTransaction()) {
             throw new ShardingSphereException("Failed to switch schema, please terminate current transaction.");
         }
@@ -206,11 +218,9 @@ public final class BackendConnection implements ExecutorJDBCManager {
     }
     
     private void setFetchSize(final Statement statement) throws SQLException {
-        DatabaseType databaseType = ProxyContext.getInstance().getMetaDataContexts().getMetaData(getSchemaName()).getResource().getDatabaseType();
-        Optional<StatementMemoryStrictlyFetchSizeSetter> fetchSizeSetter = TypedSPIRegistry.findRegisteredService(
-                StatementMemoryStrictlyFetchSizeSetter.class, databaseType.getName(), new Properties());
-        if (fetchSizeSetter.isPresent()) {
-            fetchSizeSetter.get().setFetchSize(statement);
+        DatabaseType databaseType = ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData(getSchemaName()).getResource().getDatabaseType();
+        if (fetchSizeSetters.containsKey(databaseType.getName())) {
+            fetchSizeSetters.get(databaseType.getName()).setFetchSize(statement);
         }
     }
     
@@ -304,20 +314,19 @@ public final class BackendConnection implements ExecutorJDBCManager {
         }
         cachedConnections.clear();
         connectionPostProcessors.clear();
-        connectionStatus.switchToReleased();
         return result;
     }
     
     /**
-     * Close federate executor.
+     * Close federation executor.
      * 
-     * @return SQL exception when federate executor close
+     * @return SQL exception when federation executor close
      */
-    public synchronized Collection<SQLException> closeFederateExecutor() {
+    public synchronized Collection<SQLException> closeFederationExecutor() {
         Collection<SQLException> result = new LinkedList<>();
-        if (null != federateExecutor) {
+        if (null != federationExecutor) {
             try {
-                federateExecutor.close();
+                federationExecutor.close();
             } catch (final SQLException ex) {
                 result.add(ex);
             }

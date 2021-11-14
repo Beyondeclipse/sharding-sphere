@@ -19,10 +19,14 @@ package org.apache.shardingsphere.shadow.yaml.config;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.shardingsphere.infra.yaml.config.YamlRuleConfiguration;
+import org.apache.shardingsphere.infra.yaml.config.pojo.YamlRuleConfiguration;
+import org.apache.shardingsphere.infra.yaml.config.pojo.algorithm.YamlShardingSphereAlgorithmConfiguration;
 import org.apache.shardingsphere.shadow.api.config.ShadowRuleConfiguration;
+import org.apache.shardingsphere.shadow.yaml.config.datasource.YamlShadowDataSourceConfiguration;
+import org.apache.shardingsphere.shadow.yaml.config.table.YamlShadowTableConfiguration;
 
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Shadow rule configuration.
@@ -31,11 +35,15 @@ import java.util.List;
 @Setter
 public final class YamlShadowRuleConfiguration implements YamlRuleConfiguration {
     
-    private String column;
+    private boolean enable;
     
-    private List<String> sourceDataSourceNames;
+    private String defaultShadowAlgorithmName;
     
-    private List<String> shadowDataSourceNames;
+    private Map<String, YamlShadowDataSourceConfiguration> dataSources = new LinkedHashMap<>();
+    
+    private Map<String, YamlShadowTableConfiguration> tables = new LinkedHashMap<>();
+    
+    private Map<String, YamlShardingSphereAlgorithmConfiguration> shadowAlgorithms = new LinkedHashMap<>();
     
     @Override
     public Class<ShadowRuleConfiguration> getRuleConfigurationType() {
