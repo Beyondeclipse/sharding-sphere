@@ -25,6 +25,9 @@ import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.expr.simple.ExpectedLiteralExpression;
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.expr.simple.ExpectedParameterMarkerExpression;
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.expr.simple.ExpectedSubquery;
+import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.function.ExpectedFunction;
+import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.generic.ExpectedDataType;
+import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.projection.impl.aggregation.ExpectedAggregationProjection;
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.projection.impl.expression.ExpectedExpressionProjection;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -45,6 +48,9 @@ public final class ExpectedExpression extends AbstractExpectedSQLSegment {
     @XmlElement(name = "column")
     private ExpectedColumn column;
     
+    @XmlElement(name = "data-type")
+    private ExpectedDataType dataType;
+    
     @XmlElement(name = "common-expression")
     private ExpectedCommonExpression commonExpression;
     
@@ -53,6 +59,9 @@ public final class ExpectedExpression extends AbstractExpectedSQLSegment {
     
     @XmlElement(name = "expression-projection")
     private ExpectedExpressionProjection expressionProjection;
+    
+    @XmlElement(name = "function")
+    private ExpectedFunction function;
     
     @XmlElement(name = "in-expression")
     private ExpectedInExpression inExpression;
@@ -71,4 +80,7 @@ public final class ExpectedExpression extends AbstractExpectedSQLSegment {
     
     @XmlElement(name = "subquery")
     private ExpectedSubquery subquery;
+    
+    @XmlElement(name = "aggregation-projection")
+    private ExpectedAggregationProjection aggregationProjection;
 }

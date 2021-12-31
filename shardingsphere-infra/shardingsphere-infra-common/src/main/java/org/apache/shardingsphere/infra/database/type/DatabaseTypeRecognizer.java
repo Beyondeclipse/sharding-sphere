@@ -42,18 +42,17 @@ public final class DatabaseTypeRecognizer {
         DatabaseType result = null;
         for (DataSource each : dataSources) {
             DatabaseType databaseType = getDatabaseType(each);
-            Preconditions.checkState(null == result || result == databaseType, String.format("Database type inconsistent with '%s' and '%s'", result, databaseType));
+            Preconditions.checkState(null == result || result == databaseType, "Database type inconsistent with '%s' and '%s'", result, databaseType);
             result = databaseType;
         }
         return null == result ? DatabaseTypeRegistry.getDefaultDatabaseType() : result;
     }
     
-    @SuppressWarnings("ReturnOfNull")
     private static DatabaseType getDatabaseType(final DataSource dataSource) {
         try (Connection connection = dataSource.getConnection()) {
             return DatabaseTypeRegistry.getDatabaseTypeByURL(connection.getMetaData().getURL());
         } catch (final SQLException ex) {
-            return null;
+            throw new IllegalArgumentException("An error occurred when open datasource connection!", ex);
         }
     }
 }

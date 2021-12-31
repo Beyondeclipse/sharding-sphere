@@ -21,37 +21,57 @@ import org.apache.shardingsphere.dbdiscovery.api.config.DatabaseDiscoveryRuleCon
 import org.apache.shardingsphere.dbdiscovery.api.config.rule.DatabaseDiscoveryDataSourceRuleConfiguration;
 import org.apache.shardingsphere.dbdiscovery.distsql.parser.statement.DropDatabaseDiscoveryRuleStatement;
 import org.apache.shardingsphere.infra.config.algorithm.ShardingSphereAlgorithmConfiguration;
+import org.apache.shardingsphere.infra.distsql.exception.DistSQLException;
 import org.apache.shardingsphere.infra.distsql.exception.rule.RequiredRuleMissedException;
-import org.apache.shardingsphere.infra.distsql.exception.rule.RuleDefinitionViolationException;
-import org.apache.shardingsphere.infra.metadata.resource.ShardingSphereResource;
+import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.mockito.Mockito.mock;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
+@RunWith(MockitoJUnitRunner.class)
 public final class DropDatabaseDiscoveryRuleStatementUpdaterTest {
+    
+    @Mock
+    private ShardingSphereMetaData shardingSphereMetaData;
     
     private final DropDatabaseDiscoveryRuleStatementUpdater updater = new DropDatabaseDiscoveryRuleStatementUpdater();
     
     @Test(expected = RequiredRuleMissedException.class)
-    public void assertCheckSQLStatementWithoutCurrentRule() throws RuleDefinitionViolationException {
-        updater.checkSQLStatement("foo", createSQLStatement(), null, mock(ShardingSphereResource.class));
+    public void assertCheckSQLStatementWithoutCurrentRule() throws DistSQLException {
+        updater.checkSQLStatement(shardingSphereMetaData, createSQLStatement(), null);
     }
     
     @Test(expected = RequiredRuleMissedException.class)
-    public void assertCheckSQLStatementWithoutToBeDroppedRules() throws RuleDefinitionViolationException {
-        updater.checkSQLStatement("foo", createSQLStatement(), new DatabaseDiscoveryRuleConfiguration(Collections.emptyList(), Collections.emptyMap()), mock(ShardingSphereResource.class));
+    public void assertCheckSQLStatementWithoutToBeDroppedRules() throws DistSQLException {
+        updater.checkSQLStatement(shardingSphereMetaData, createSQLStatement(), new DatabaseDiscoveryRuleConfiguration(Collections.emptyList(), Collections.emptyMap(), Collections.emptyMap()));
     }
     
     @Test
     public void assertUpdateCurrentRuleConfiguration() {
-        updater.updateCurrentRuleConfiguration(createSQLStatement(), createCurrentRuleConfiguration());
-        // TODO assert current rule configuration
+        DatabaseDiscoveryRuleConfiguration databaseDiscoveryRuleConfiguration = createCurrentRuleConfiguration();
+        updater.updateCurrentRuleConfiguration(createSQLStatement(), databaseDiscoveryRuleConfiguration);
+        assertTrue(databaseDiscoveryRuleConfiguration.getDataSources().isEmpty());
+        assertThat(databaseDiscoveryRuleConfiguration.getDiscoveryTypes().size(), is(1));
+    }
+    
+    @Test
+    public void assertUpdateCurrentRuleConfigurationWithInUsedDiscoveryType() {
+        DatabaseDiscoveryRuleConfiguration databaseDiscoveryRuleConfiguration = createMultipleCurrentRuleConfigurations();
+        assertFalse(updater.updateCurrentRuleConfiguration(createSQLStatement(), databaseDiscoveryRuleConfiguration));
+        assertThat(databaseDiscoveryRuleConfiguration.getDiscoveryTypes().size(), is(1));
     }
     
     private DropDatabaseDiscoveryRuleStatement createSQLStatement() {
@@ -59,9 +79,17 @@ public final class DropDatabaseDiscoveryRuleStatementUpdaterTest {
     }
     
     private DatabaseDiscoveryRuleConfiguration createCurrentRuleConfiguration() {
-        DatabaseDiscoveryDataSourceRuleConfiguration dataSourceRuleConfig = new DatabaseDiscoveryDataSourceRuleConfiguration("ha_group", Collections.emptyList(), "pr_ds_MGR");
+        DatabaseDiscoveryDataSourceRuleConfiguration dataSourceRuleConfig = new DatabaseDiscoveryDataSourceRuleConfiguration("ha_group", Collections.emptyList(), "ha_heartbeat", "pr_ds_MGR");
         Map<String, ShardingSphereAlgorithmConfiguration> discoveryTypes = new HashMap<>(1, 1);
         discoveryTypes.put("pr_ds_MGR", new ShardingSphereAlgorithmConfiguration("pr_ds_MGR", new Properties()));
-        return new DatabaseDiscoveryRuleConfiguration(new LinkedList<>(Collections.singleton(dataSourceRuleConfig)), discoveryTypes);
+        return new DatabaseDiscoveryRuleConfiguration(new LinkedList<>(Collections.singleton(dataSourceRuleConfig)), Collections.emptyMap(), discoveryTypes);
+    }
+    
+    private DatabaseDiscoveryRuleConfiguration createMultipleCurrentRuleConfigurations() {
+        DatabaseDiscoveryDataSourceRuleConfiguration dataSourceRuleConfig = new DatabaseDiscoveryDataSourceRuleConfiguration("ha_group", Collections.emptyList(), "ha_heartbeat", "pr_ds_MGR");
+        Map<String, ShardingSphereAlgorithmConfiguration> discoveryTypes = new HashMap<>(1, 1);
+        discoveryTypes.put("pr_ds_MGR", new ShardingSphereAlgorithmConfiguration("pr_ds_MGR", new Properties()));
+        return new DatabaseDiscoveryRuleConfiguration(new LinkedList<>(Arrays.asList(dataSourceRuleConfig, 
+                new DatabaseDiscoveryDataSourceRuleConfiguration("ha_group_another", Collections.emptyList(), "ha_heartbeat", "pr_ds_MGR"))), Collections.emptyMap(), discoveryTypes);
     }
 }

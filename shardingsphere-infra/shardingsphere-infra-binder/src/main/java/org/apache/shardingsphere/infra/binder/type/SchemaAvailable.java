@@ -17,27 +17,15 @@
 
 package org.apache.shardingsphere.infra.binder.type;
 
-import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.SchemaSegment;
-
-import java.util.Collection;
-import java.util.Optional;
-
 /**
  * Schema available.
  */
 public interface SchemaAvailable {
     
     /**
-     * Get schema segments.
-     * 
-     * @return schema segments
-     */
-    Collection<SchemaSegment> getSchemas();
-    
-    /**
      * Get schema name.
-     *
-     * @return schema name
+     * 
+     * @return current schema name.
      */
-    Optional<String> getSchemaName();
+    String getSchemaName();
 }

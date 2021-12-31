@@ -21,6 +21,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.infra.properties.TypedPropertyKey;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.stream.Collectors;
+
 /**
  * Typed property key of configuration.
  */
@@ -41,7 +45,7 @@ public enum ConfigurationPropertyKey implements TypedPropertyKey {
     /**
      * The max thread size of worker group to execute SQL.
      */
-    EXECUTOR_SIZE("executor-size", String.valueOf(0), int.class),
+    KERNEL_EXECUTOR_SIZE("kernel-executor-size", String.valueOf(0), int.class),
     
     /**
      * Max opened connection size for each query.
@@ -64,46 +68,6 @@ public enum ConfigurationPropertyKey implements TypedPropertyKey {
     PROXY_FRONTEND_FLUSH_THRESHOLD("proxy-frontend-flush-threshold", String.valueOf(128), int.class),
     
     /**
-     * Transaction type of proxy.
-     *
-     * <p>
-     * LOCAL:
-     * ShardingSphere-Proxy will run with LOCAL transaction.
-     * </p>
-     *
-     * <p>
-     * XA:
-     * ShardingSphere-Proxy will run with XA transaction.
-     * </p>
-     *
-     * <p>
-     * BASE:
-     * ShardingSphere-Proxy will run with BASE transaction.
-     * </p>
-     */
-    PROXY_TRANSACTION_TYPE("proxy-transaction-type", "LOCAL", String.class),
-    
-    /**
-     * XA transaction manager type of proxy.
-     *
-     * <p>
-     * Atomikos:
-     * ShardingSphere-Proxy will run with XA transaction with Atomikos.
-     * </p>
-     *
-     * <p>
-     * Narayana:
-     * ShardingSphere-Proxy will run with XA transaction with Narayana.
-     * </p>
-     *
-     * <p>
-     * Bitronix:
-     * ShardingSphere-Proxy will run with XA transaction with Bitronix.
-     * </p>
-     */
-    XA_TRANSACTION_MANAGER_TYPE("xa-transaction-manager-type", "Atomikos", String.class),
-    
-    /**
      * Whether enable opentracing for ShardingSphere-Proxy.
      */
     PROXY_OPENTRACING_ENABLED("proxy-opentracing-enabled", String.valueOf(Boolean.FALSE), boolean.class),
@@ -116,7 +80,7 @@ public enum ConfigurationPropertyKey implements TypedPropertyKey {
     /**
      * Whether enable show process list.
      */
-    SHOW_PROCESS_LIST_ENABLED("show-process-list-enabled", String.valueOf(false), boolean.class),
+    SHOW_PROCESS_LIST_ENABLED("show-process-list-enabled", String.valueOf(Boolean.FALSE), boolean.class),
     
     /**
      * The length of time in milliseconds an SQL waits for a global lock before giving up.
@@ -124,13 +88,49 @@ public enum ConfigurationPropertyKey implements TypedPropertyKey {
     LOCK_WAIT_TIMEOUT_MILLISECONDS("lock-wait-timeout-milliseconds", String.valueOf(50000L), long.class),
     
     /**
-     * Whether enable lock.
+     * Proxy backend query fetch size. A larger value may increase the memory usage of ShardingSphere Proxy.
+     * The default value is -1, which means set the minimum value for different JDBC drivers.
      */
-    LOCK_ENABLED("lock-enabled", String.valueOf(false), boolean.class);
+    PROXY_BACKEND_QUERY_FETCH_SIZE("proxy-backend-query-fetch-size", String.valueOf(-1), int.class),
+    
+    /**
+     * Whether check duplicate table.
+     */
+    CHECK_DUPLICATE_TABLE_ENABLED("check-duplicate-table-enabled", String.valueOf(Boolean.FALSE), boolean.class),
+    
+    /**
+     * Proxy frontend executor size. The default value is 0, which means let Netty decide.
+     */
+    PROXY_FRONTEND_EXECUTOR_SIZE("proxy-frontend-executor-size", String.valueOf(0), int.class),
+    
+    /**
+     * Available options of proxy backend executor suitable: OLAP(default), OLTP. The OLTP option may reduce time cost of writing packets to client, but it may increase the latency of SQL execution
+     * if client connections are more than proxy-frontend-netty-executor-size, especially executing slow SQL.
+     */
+    PROXY_BACKEND_EXECUTOR_SUITABLE("proxy-backend-executor-suitable", "OLAP", String.class),
+    
+    /**
+     * Less than or equal to 0 means no limitation.
+     */
+    PROXY_FRONTEND_MAX_CONNECTIONS("proxy-frontend-max-connections", "0", int.class),
+    
+    /**
+     * Whether enable sql federation.
+     */
+    SQL_FEDERATION_ENABLED("sql-federation-enabled", String.valueOf(Boolean.FALSE), boolean.class);
     
     private final String key;
     
     private final String defaultValue;
     
     private final Class<?> type;
+    
+    /**
+     * Get property key names.
+     *
+     * @return collection of key names
+     */
+    public static Collection<String> getKeyNames() {
+        return Arrays.stream(values()).map(ConfigurationPropertyKey::name).collect(Collectors.toList());
+    }
 }

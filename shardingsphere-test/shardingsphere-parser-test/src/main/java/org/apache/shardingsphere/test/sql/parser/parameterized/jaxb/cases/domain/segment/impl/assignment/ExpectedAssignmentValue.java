@@ -24,6 +24,8 @@ import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.expr.complex.ExpectedCommonExpression;
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.expr.simple.ExpectedLiteralExpression;
 import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.expr.simple.ExpectedParameterMarkerExpression;
+import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.expr.simple.ExpectedSubquery;
+import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.segment.impl.function.ExpectedFunction;
 
 import javax.xml.bind.annotation.XmlElement;
 
@@ -45,4 +47,10 @@ public final class ExpectedAssignmentValue extends AbstractExpectedSQLSegment {
     
     @XmlElement(name = "column")
     private ExpectedColumn column;
+    
+    @XmlElement(name = "subquery")
+    private ExpectedSubquery subquery;
+    
+    @XmlElement(name = "function")
+    private ExpectedFunction function;
 }

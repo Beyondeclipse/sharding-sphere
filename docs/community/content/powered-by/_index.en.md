@@ -7,13 +7,18 @@ chapter = true
 
 ## Register
 
-Welcome to register by company + homepage + use case(optional), your support is important to us.
+You're welcome to register by company + homepage + use case scenario (optional), your support is very important to us.
 
-Please register [here](https://github.com/apache/shardingsphere/issues/234) with `company` + `homepage` + `use case(optional)`.
+Please register [here](https://github.com/apache/shardingsphere/discussions/12255) with 'company' + 'homepage' + 'use case scenario' (optional).
 
-## Who are using ShardingSphere?
+## Who is Using ShardingSphere?
 
-Total: 168 companies.
+Total: 173 companies.
+
+### Infra
+<ul>
+    <li><a href="http://www.sphere-ex.com/" rel="nofollow">SphereEx</a></li>
+</ul>
 
 ### Financial Industry
 <ul>
@@ -28,18 +33,16 @@ Total: 168 companies.
     <li><a href="https://www.haiercash.com/" rel="nofollow">Haier Cash</a></li>
     <li><a href="https://www.kjtpay.com/" rel="nofollow">KJT pay</a></li>
     <li><a href="https://www.ppdai.com/" rel="nofollow">PPDai</a></li>
-    <li><a href="https://www.xiaoniu88.com/" rel="nofollow">XiaoNiu88</a></li>
-    <li><a href="https://www.huaxiafinance.com/" rel="nofollow">HuaXia Finance</a></li>
     <li><a href="https://www.niiwoo.com/" rel="nofollow">Niiwoo</a></li>
     <li><a href="https://www.51credit.com/" rel="nofollow">51credit</a></li>
-    <li><a href="https://www.tuandai.com/" rel="nofollow">TuanDai</a></li>
+    <li><a href="http://www.tuandai.com/" rel="nofollow">TuanDai</a></li>
     <li><a href="https://www.cypfintech.com/" rel="nofollow">Cypfintech</a></li>
     <li><a href="https://www.ktjr.com/" rel="nofollow">KTJR</a></li>
     <li><a href="https://www.tansun.com/" rel="nofollow">TANSUN</a></li>
     <li><a href="https://credigo.io/" rel="nofollow">CrediGO</a></li>
 </ul>
 
-### E-commerce
+### E-Commerce
 <ul>
     <li><a href="http://www.dangdang.com/" rel="nofollow">DangDang</a></li>
     <li><a href="https://www.joybuy.com/" rel="nofollow">JoyBuy</a></li>
@@ -57,11 +60,13 @@ Total: 168 companies.
     <li><a href="http://cs.maifang.com/" rel="nofollow">MiaoMaiFang</a></li>
     <li><a href="https://TonySourcing.com/" rel="nofollow">TonySourcing</a></li>
     <li><a href="https://zowiesunglasses.com/" rel="nofollow">Zowie</a></li>
-     <li><a href="https://m.51tiangou.com/">51tiangou</a></li>
-     <li><a href="http://www.dusto.cn/">DUSTO</a></li>
+    <li><a href="https://m.51tiangou.com/" rel="nofollow">51tiangou</a></li>
+    <li><a href="http://www.dusto.cn/" rel="nofollow">DUSTO</a></li>
+    <li><a href="https://www.sourcingarts.com/" rel="nofollow">SourcingArts</a></li>
+    <li><a href="https://www.wandougongzhu.cn" rel="nofollow">WanDouGongZhu</a></li>
 </ul>
 
-### Digitalization and Cloud Services
+### Digitalization & Cloud Services
 <ul>
     <li><a href="https://www.jddglobal.com/" rel="nofollow">JD Digits</a></li>
     <li>JD’s Big Data and Intelligent Supply Chain Department
@@ -85,7 +90,6 @@ Total: 168 companies.
 ### Transportation
 <ul>
     <li><a href="https://www.didiglobal.com/" rel="nofollow">DiDi Global</a></li>
-    <li><a href="https://www.helloglobal.com/" rel="nofollow">HelloGlobal</a></li>
     <li><a href="https://www.01zhuanche.com/" rel="nofollow">ShouQi</a></li>
     <li><a href="https://www.trawe.cn/" rel="nofollow">Trawe</a></li>
     <li><a href="https://www.souche.com/" rel="nofollow">SouChe</a></li>
@@ -121,7 +125,7 @@ Total: 168 companies.
     <li><a href="https://travelingpin.com" rel="nofollow">travelingpin</a></li>
 </ul>
 
-### E-education
+### E-Learning
 <ul>
     <li><a href="http://www.100tal.com/" rel="nofollow">TAL</a></li>
     <li><a href="http://www.hqwx.com/" rel="nofollow">HQWX</a></li>
@@ -135,7 +139,7 @@ Total: 168 companies.
     <li><a href="https://kada.hhdd.com/" rel="nofollow">KaDa Story</a></li>
 </ul>
 
-### E-entertainment
+### E-Entertainment
 <ul>
     <li><a href="https://y.tencentmusic.com" rel="nofollow">Tencent Music</a></li>
     <li><a href="https://www.bilibili.com/" rel="nofollow">Bilibili</a></li>
@@ -161,7 +165,7 @@ Total: 168 companies.
     <li><a href="https://www.xiachufang.com/" rel="nofollow">XiaChuFang</a></li>
 </ul>
 
-### O2O
+### O2O - Online2Offline
 <ul>
     <li><a href="https://bj.58.com/" rel="nofollow">58</a></li>
     <li><a href="https://www.guazi.com/" rel="nofollow">GuaZi</a></li>
@@ -179,6 +183,7 @@ Total: 168 companies.
     <li><a href="http://www.chiscdc.com/" rel="nofollow">CHISCDC</a></li>
     <li><a href="http://www.taxchina.com/" rel="nofollow">Tax China</a></li>
     <li><a href="http://www.gddxit.com/" rel="nofollow">GUANG DONG DA XIN</a></li>
+    <li><a href="https://hulucc.com/" rel="nofollow">HULU STORY</a></li>
 </ul>
 
 ### Communication
@@ -189,7 +194,7 @@ Total: 168 companies.
     <li><a href="https://www.tcl.com/" rel="nofollow">TCL</a></li>
 </ul>
 
-### Internet of Things
+### Internet of Things - IoT
 <ul>
     <li><a href="https://www.hikvision.com/" rel="nofollow">Hikvision</a></li>
     <li><a href="http://www.iotlead.com/" rel="nofollow">Century Lead</a></li>
@@ -200,7 +205,7 @@ Total: 168 companies.
 ### Manufacturing
 <ul>
     <li><a href="https://www.lixiang.com" rel="nofollow">LiXiang</a></li>
-<li><a href="https://www.gongniu.cn/" rel="nofollow">Bull</a></li>
+    <li><a href="https://www.gongniu.cn/" rel="nofollow">Bull</a></li>
 </ul>
 
 ### Software Development Services
@@ -231,21 +236,24 @@ Total: 168 companies.
     <li><a href="https://www.garfiel-tech.com/" rel="nofollow">Garfiel-tech</a></li>
     <li><a href="https://wuyuan.io" rel="nofollow">Enhancer</a></li>
     <li><a href="https://www.sunyur.com/" rel="nofollow">Sunyur</a></li>
-    <li><a href="https://www.yunyuecloud.com/">Digital Yunyue</a></li>
-    <li><a href="https://t.itaojin.cn">itaojin</a></li>
+    <li><a href="https://www.yunyuecloud.com/" rel="nofollow">Digital Yunyue</a></li>
+    <li><a href="https://t.itaojin.cn" rel="nofollow">itaojin</a></li>
+    <li><a href="http://www.hzsun.com" rel="nofollow">hzsun</a></li>
 </ul>
 
 ### Health Care
 <ul>
-    <li><a href="https://www.keep.com/">Keep</a></li>
-    <li><a href="http://www.dxy.cn/">DXY</a></li>
+    <li><a href="https://www.keep.com/" rel="nofollow">Keep</a></li>
+    <li><a href="http://www.dxy.cn/" rel="nofollow">DXY</a></li>
     <li><a href="https://www.ddky.com/" rel="nofollow">DDKY</a></li>
     <li><a href="https://www.myweimai.com/" rel="nofollow">MyWeiMai</a></li>
     <li><a href="http://www.gaojihealth.com/" rel="nofollow">GaoJiHealth</a></li>
     <li><a href="https://www.zyhealth.com/" rel="nofollow">ZYHealth</a></li>
-    <li><a href="https://www.mytijian.com">Mytijian</a></li>
-    <li><a href="https://cloud.guahao.cn/">WeDoctor Cloud</a></li>
-    <li><a href="http://www.huxleymedical.tech/">Hualian Medical</a></li>
+    <li><a href="https://www.mytijian.com" rel="nofollow">Mytijian</a></li>
+    <li><a href="https://cloud.guahao.cn/" rel="nofollow">WeDoctor Cloud</a></li>
+    <li><a href="http://www.huxleymedical.tech/" rel="nofollow">Hualian Medical</a></li>
+    <li><a href="https://www.xingren.com/" rel="nofollow">xingren</a></li>
+    <li><a href="https://www.medbanks.cn/" rel="nofollow">Medbanks</a></li>
 </ul>
 
 <img src="https://shardingsphere.apache.org/community/image/powered-by.png" width = "30%" height = "30%" align="right" alt="Powered By ShardingSphere" />

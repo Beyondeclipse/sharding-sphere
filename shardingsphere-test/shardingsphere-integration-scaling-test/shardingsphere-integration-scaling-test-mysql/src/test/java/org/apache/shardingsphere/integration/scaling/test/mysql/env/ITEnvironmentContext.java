@@ -20,12 +20,14 @@ package org.apache.shardingsphere.integration.scaling.test.mysql.env;
 import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.apache.shardingsphere.data.pipeline.api.config.rulealtered.JobConfiguration;
+import org.apache.shardingsphere.data.pipeline.api.config.rulealtered.PipelineConfiguration;
+import org.apache.shardingsphere.data.pipeline.api.datasource.config.PipelineDataSourceConfiguration;
+import org.apache.shardingsphere.data.pipeline.api.datasource.config.yaml.YamlPipelineDataSourceConfiguration;
 import org.apache.shardingsphere.integration.scaling.test.mysql.env.cases.DataSet;
 import org.apache.shardingsphere.integration.scaling.test.mysql.env.cases.Type;
 import org.apache.shardingsphere.integration.scaling.test.mysql.env.config.SourceConfiguration;
 import org.apache.shardingsphere.integration.scaling.test.mysql.env.config.TargetConfiguration;
-import org.apache.shardingsphere.scaling.core.config.JobConfiguration;
-import org.apache.shardingsphere.scaling.core.config.RuleConfiguration;
 import org.apache.shardingsphere.sharding.yaml.config.rule.YamlTableRuleConfiguration;
 
 import javax.sql.DataSource;
@@ -54,7 +56,7 @@ public final class ITEnvironmentContext {
     
     public ITEnvironmentContext() {
         testCases = loadTestCases();
-        Map<String, YamlTableRuleConfiguration> sourceTableRules = createSourceTableRules(testCases);
+        Map<String, YamlTableRuleConfiguration> sourceTableRules = createSourceTableRules();
         scalingConfiguration = createScalingConfiguration(sourceTableRules);
         sourceDataSource = SourceConfiguration.createHostDataSource(sourceTableRules);
         targetDataSource = TargetConfiguration.createHostDataSource();
@@ -67,8 +69,8 @@ public final class ITEnvironmentContext {
         }
     }
     
-    private Map<String, YamlTableRuleConfiguration> createSourceTableRules(final DataSet dataSet) {
-        Map<String, YamlTableRuleConfiguration> result = new HashMap<>();
+    private Map<String, YamlTableRuleConfiguration> createSourceTableRules() {
+        Map<String, YamlTableRuleConfiguration> result = new HashMap<>(testCases.getTypes().size(), 1);
         for (Type type : testCases.getTypes()) {
             YamlTableRuleConfiguration tableRule = new YamlTableRuleConfiguration();
             tableRule.setLogicTable(type.getTableName());
@@ -79,11 +81,18 @@ public final class ITEnvironmentContext {
     }
     
     private static String createScalingConfiguration(final Map<String, YamlTableRuleConfiguration> tableRules) {
-        JobConfiguration jobConfiguration = new JobConfiguration();
-        RuleConfiguration ruleConfiguration = new RuleConfiguration();
-        ruleConfiguration.setSource(SourceConfiguration.getDockerConfiguration(tableRules).wrap());
-        ruleConfiguration.setTarget(TargetConfiguration.getDockerConfiguration().wrap());
-        jobConfiguration.setRuleConfig(ruleConfiguration);
-        return new Gson().toJson(jobConfiguration);
+        PipelineConfiguration pipelineConfig = new PipelineConfiguration();
+        pipelineConfig.setSource(createYamlPipelineDataSourceConfiguration(SourceConfiguration.getDockerConfiguration(tableRules)));
+        pipelineConfig.setTarget(createYamlPipelineDataSourceConfiguration(TargetConfiguration.getDockerConfiguration()));
+        JobConfiguration jobConfig = new JobConfiguration();
+        jobConfig.setPipelineConfig(pipelineConfig);
+        return new Gson().toJson(jobConfig);
+    }
+    
+    private static YamlPipelineDataSourceConfiguration createYamlPipelineDataSourceConfiguration(final PipelineDataSourceConfiguration targetConfig) {
+        YamlPipelineDataSourceConfiguration result = new YamlPipelineDataSourceConfiguration();
+        result.setType(targetConfig.getType());
+        result.setParameter(targetConfig.getParameter());
+        return result;
     }
 }

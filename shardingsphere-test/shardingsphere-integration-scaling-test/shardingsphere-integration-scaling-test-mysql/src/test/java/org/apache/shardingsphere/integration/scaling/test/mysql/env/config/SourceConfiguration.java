@@ -17,21 +17,22 @@
 
 package org.apache.shardingsphere.integration.scaling.test.mysql.env.config;
 
-import com.google.common.collect.ImmutableMap;
 import lombok.SneakyThrows;
 import org.apache.shardingsphere.driver.jdbc.core.datasource.ShardingSphereDataSource;
-import org.apache.shardingsphere.infra.yaml.config.YamlRootRuleConfigurations;
+import org.apache.shardingsphere.infra.database.DefaultSchema;
+import org.apache.shardingsphere.infra.yaml.config.pojo.YamlRootConfiguration;
+import org.apache.shardingsphere.infra.yaml.config.swapper.YamlDataSourceConfigurationSwapper;
+import org.apache.shardingsphere.infra.yaml.config.swapper.YamlRuleConfigurationSwapperEngine;
 import org.apache.shardingsphere.infra.yaml.engine.YamlEngine;
-import org.apache.shardingsphere.infra.yaml.swapper.YamlDataSourceConfigurationSwapper;
-import org.apache.shardingsphere.infra.yaml.swapper.YamlRuleConfigurationSwapperEngine;
 import org.apache.shardingsphere.integration.scaling.test.mysql.env.IntegrationTestEnvironment;
-import org.apache.shardingsphere.scaling.core.config.datasource.ShardingSphereJDBCDataSourceConfiguration;
+import org.apache.shardingsphere.data.pipeline.api.datasource.config.impl.ShardingSpherePipelineDataSourceConfiguration;
 import org.apache.shardingsphere.sharding.yaml.config.YamlShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.yaml.config.rule.YamlTableRuleConfiguration;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -50,7 +51,7 @@ public final class SourceConfiguration {
      * @param tableRules table rules
      * @return sharding jdbc configuration
      */
-    public static ShardingSphereJDBCDataSourceConfiguration getDockerConfiguration(final Map<String, YamlTableRuleConfiguration> tableRules) {
+    public static ShardingSpherePipelineDataSourceConfiguration getDockerConfiguration(final Map<String, YamlTableRuleConfiguration> tableRules) {
         return getConfiguration(String.format(SOURCE_JDBC_URL, ENGINE_ENV_PROPS.getProperty("db.host.docker")), tableRules);
     }
     
@@ -60,24 +61,23 @@ public final class SourceConfiguration {
      * @param tableRules table rules
      * @return sharding jdbc configuration
      */
-    public static ShardingSphereJDBCDataSourceConfiguration getHostConfiguration(final Map<String, YamlTableRuleConfiguration> tableRules) {
+    public static ShardingSpherePipelineDataSourceConfiguration getHostConfiguration(final Map<String, YamlTableRuleConfiguration> tableRules) {
         return getConfiguration(String.format(SOURCE_JDBC_URL, ENGINE_ENV_PROPS.getProperty("db.host.host")), tableRules);
     }
     
-    private static ShardingSphereJDBCDataSourceConfiguration getConfiguration(final String jdbcUrl, final Map<String, YamlTableRuleConfiguration> tableRules) {
-        YamlRootRuleConfigurations shardingSphereConfigurations = getShardingJdbcConfiguration(jdbcUrl, tableRules);
-        return new ShardingSphereJDBCDataSourceConfiguration(YamlEngine.marshal(shardingSphereConfigurations));
+    private static ShardingSpherePipelineDataSourceConfiguration getConfiguration(final String jdbcUrl, final Map<String, YamlTableRuleConfiguration> tableRules) {
+        YamlRootConfiguration rootConfig = getShardingJdbcConfiguration(jdbcUrl, tableRules);
+        return new ShardingSpherePipelineDataSourceConfiguration(YamlEngine.marshal(rootConfig));
     }
     
-    private static YamlRootRuleConfigurations getShardingJdbcConfiguration(final String jdbcUrl, final Map<String, YamlTableRuleConfiguration> tableRules) {
-        YamlRootRuleConfigurations result = new YamlRootRuleConfigurations();
-        Map dataSources = ImmutableMap.builder().put("ds_src", ImmutableMap.builder()
-                .put("dataSourceClassName", "com.zaxxer.hikari.HikariDataSource")
-                .put("jdbcUrl", jdbcUrl)
-                .put("username", ENGINE_ENV_PROPS.getProperty("db.username"))
-                .put("password", ENGINE_ENV_PROPS.getProperty("db.password"))
-                .build()).build();
-        result.setDataSources(dataSources);
+    private static YamlRootConfiguration getShardingJdbcConfiguration(final String jdbcUrl, final Map<String, YamlTableRuleConfiguration> tableRules) {
+        Map<String, Object> dataSources = new HashMap<>();
+        dataSources.put("dataSourceClassName", "com.zaxxer.hikari.HikariDataSource");
+        dataSources.put("jdbcUrl", jdbcUrl);
+        dataSources.put("username", ENGINE_ENV_PROPS.getProperty("db.username"));
+        dataSources.put("password", ENGINE_ENV_PROPS.getProperty("db.password"));
+        YamlRootConfiguration result = new YamlRootConfiguration();
+        result.setDataSources(Collections.singletonMap("ds_src", dataSources));
         YamlShardingRuleConfiguration shardingRuleConfiguration = new YamlShardingRuleConfiguration();
         shardingRuleConfiguration.setTables(tableRules);
         result.setRules(Collections.singleton(shardingRuleConfiguration));
@@ -85,15 +85,16 @@ public final class SourceConfiguration {
     }
     
     /**
-     * Create host sharding jdbc data source.
+     * Create host ShardingSphere data source.
      *
      * @param tableRules table rules
      * @return data source
      */
     @SneakyThrows(SQLException.class)
     public static DataSource createHostDataSource(final Map<String, YamlTableRuleConfiguration> tableRules) {
-        ShardingSphereJDBCDataSourceConfiguration configuration = getHostConfiguration(tableRules);
-        return new ShardingSphereDataSource(new YamlDataSourceConfigurationSwapper().swapToDataSources(configuration.getRootRuleConfigs().getDataSources()),
-                new YamlRuleConfigurationSwapperEngine().swapToRuleConfigurations(configuration.getRootRuleConfigs().getRules()), null);
+        ShardingSpherePipelineDataSourceConfiguration config = getHostConfiguration(tableRules);
+        return new ShardingSphereDataSource(DefaultSchema.LOGIC_NAME, 
+                null, new YamlDataSourceConfigurationSwapper().swapToDataSources(config.getRootConfig().getDataSources()),
+                new YamlRuleConfigurationSwapperEngine().swapToRuleConfigurations(config.getRootConfig().getRules()), null);
     }
 }

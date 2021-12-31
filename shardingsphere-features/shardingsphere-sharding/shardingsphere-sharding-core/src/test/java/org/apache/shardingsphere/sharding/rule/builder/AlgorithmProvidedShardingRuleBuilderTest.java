@@ -17,16 +17,21 @@
 
 package org.apache.shardingsphere.sharding.rule.builder;
 
+import org.apache.shardingsphere.infra.config.properties.ConfigurationProperties;
 import org.apache.shardingsphere.infra.database.type.DatabaseType;
-import org.apache.shardingsphere.infra.rule.builder.scope.SchemaRuleBuilder;
-import org.apache.shardingsphere.infra.spi.ShardingSphereServiceLoader;
-import org.apache.shardingsphere.infra.spi.ordered.OrderedSPIRegistry;
+import org.apache.shardingsphere.infra.rule.builder.schema.SchemaRulesBuilderMaterials;
+import org.apache.shardingsphere.infra.rule.builder.schema.SchemaRuleBuilder;
 import org.apache.shardingsphere.sharding.algorithm.config.AlgorithmProvidedShardingRuleConfiguration;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
+import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
+import org.apache.shardingsphere.spi.ordered.OrderedSPIRegistry;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.sql.DataSource;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertThat;
@@ -39,11 +44,40 @@ public final class AlgorithmProvidedShardingRuleBuilderTest {
         ShardingSphereServiceLoader.register(SchemaRuleBuilder.class);
     }
     
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    private AlgorithmProvidedShardingRuleConfiguration ruleConfig;
+    
+    @SuppressWarnings("rawtypes")
+    private SchemaRuleBuilder builder;
+    
+    @Before
+    public void setUp() {
+        ruleConfig = mock(AlgorithmProvidedShardingRuleConfiguration.class);
+        builder = OrderedSPIRegistry.getRegisteredServices(SchemaRuleBuilder.class, Collections.singletonList(ruleConfig)).get(ruleConfig);
+    }
+    
+    @SuppressWarnings("unchecked")
     @Test
     public void assertBuild() {
-        AlgorithmProvidedShardingRuleConfiguration ruleConfig = mock(AlgorithmProvidedShardingRuleConfiguration.class);
-        SchemaRuleBuilder builder = OrderedSPIRegistry.getRegisteredServices(Collections.singletonList(ruleConfig), SchemaRuleBuilder.class).get(ruleConfig);
-        assertThat(builder.build("test_schema", Collections.singletonMap("name", mock(DataSource.class, RETURNS_DEEP_STUBS)), mock(DatabaseType.class), ruleConfig), instanceOf(ShardingRule.class));
+        SchemaRulesBuilderMaterials materials = createSchemaRulesBuilderMaterials(Collections.singletonMap("name", mock(DataSource.class, RETURNS_DEEP_STUBS)));
+        assertThat(builder.build(materials, ruleConfig, Collections.emptyList()), instanceOf(ShardingRule.class));
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Test(expected = IllegalArgumentException.class)
+    public void assertBuildWithNullDataSourceMap() {
+        SchemaRulesBuilderMaterials materials = createSchemaRulesBuilderMaterials(null);
+        assertThat(builder.build(materials, ruleConfig, Collections.emptyList()), instanceOf(ShardingRule.class));
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Test(expected = IllegalArgumentException.class)
+    public void assertBuildWithEmptyDataSourceMap() {
+        SchemaRulesBuilderMaterials materials = createSchemaRulesBuilderMaterials(Collections.emptyMap());
+        assertThat(builder.build(materials, ruleConfig, Collections.emptyList()), instanceOf(ShardingRule.class));
+    }
+    
+    private SchemaRulesBuilderMaterials createSchemaRulesBuilderMaterials(final Map<String, DataSource> dataSourceMap) {
+        return new SchemaRulesBuilderMaterials("test_schema", Collections.emptyList(),
+                mock(DatabaseType.class), dataSourceMap, new ConfigurationProperties(new Properties()));
     }
 }

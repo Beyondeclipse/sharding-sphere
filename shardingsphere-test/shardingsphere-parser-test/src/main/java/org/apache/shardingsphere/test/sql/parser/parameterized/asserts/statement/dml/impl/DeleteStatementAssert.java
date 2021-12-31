@@ -25,6 +25,7 @@ import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.OutputSeg
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.WithSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.DeleteMultiTableSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SubqueryTableSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.dml.DeleteStatement;
 import org.apache.shardingsphere.sql.parser.sql.dialect.handler.dml.DeleteStatementHandler;
 import org.apache.shardingsphere.test.sql.parser.parameterized.asserts.SQLCaseAssertContext;
@@ -42,9 +43,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Delete statement assert.
@@ -89,6 +90,9 @@ public final class DeleteStatementAssert {
                 actualTableSegments.addAll(deleteMultiTableSegment.getActualDeleteTables());
             }
             TableAssert.assertIs(assertContext, actualTableSegments, expected.getTables());
+        } else if (null != expected.getSubqueryTable()) {
+            assertNotNull(assertContext.getText("Actual subquery table segment should exist."), actual.getTableSegment());
+            TableAssert.assertIs(assertContext, (SubqueryTableSegment) actual.getTableSegment(), expected.getSubqueryTable());
         } else {
             assertNull(assertContext.getText("Actual table should not exist."), actual.getTableSegment());
         }

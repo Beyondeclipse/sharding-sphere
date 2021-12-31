@@ -19,12 +19,14 @@ package org.apache.shardingsphere.infra.metadata.resource;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.shardingsphere.infra.config.datasource.pool.destroyer.DataSourcePoolDestroyerFactory;
 import org.apache.shardingsphere.infra.database.type.DatabaseType;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +50,7 @@ public final class ShardingSphereResource {
      * @return all instance data sources
      */
     public Collection<DataSource> getAllInstanceDataSources() {
-        return dataSources.entrySet().stream().filter(entry -> dataSourcesMetaData.getAllInstanceDataSourceNames().contains(entry.getKey())).map(Map.Entry::getValue).collect(Collectors.toSet());
+        return dataSources.entrySet().stream().filter(entry -> dataSourcesMetaData.getAllInstanceDataSourceNames().contains(entry.getKey())).map(Entry::getValue).collect(Collectors.toSet());
     }
     
     /**
@@ -65,7 +67,7 @@ public final class ShardingSphereResource {
      * Close data sources.
      * 
      * @param dataSources data sources to be closed
-     * @throws SQLException exception
+     * @throws SQLException SQL exception
      */
     public void close(final Collection<String> dataSources) throws SQLException {
         for (String each : dataSources) {
@@ -73,15 +75,13 @@ public final class ShardingSphereResource {
         }
     }
     
-    private void close(final DataSource dataSource) throws SQLException {
-        if (dataSource instanceof AutoCloseable) {
-            try {
-                ((AutoCloseable) dataSource).close();
-                // CHECKSTYLE:OFF
-            } catch (final Exception ex) {
-                // CHECKSTYLE:ON
-                throw new SQLException(ex);
-            }
-        }
+    /**
+     * Close data source.
+     *
+     * @param dataSource data source to be closed
+     * @throws SQLException SQL exception
+     */
+    public void close(final DataSource dataSource) throws SQLException {
+        DataSourcePoolDestroyerFactory.destroy(dataSource);
     }
 }

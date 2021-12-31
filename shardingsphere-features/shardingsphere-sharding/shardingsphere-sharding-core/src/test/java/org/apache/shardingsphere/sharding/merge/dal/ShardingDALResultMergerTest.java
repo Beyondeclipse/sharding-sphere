@@ -18,12 +18,14 @@
 package org.apache.shardingsphere.sharding.merge.dal;
 
 import org.apache.shardingsphere.infra.binder.statement.SQLStatementContext;
+import org.apache.shardingsphere.infra.database.DefaultSchema;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResult;
 import org.apache.shardingsphere.infra.merge.result.impl.transparent.TransparentMergedResult;
 import org.apache.shardingsphere.sharding.merge.dal.common.SingleLocalDataMergedResult;
 import org.apache.shardingsphere.sharding.merge.dal.show.LogicTablesMergedResult;
 import org.apache.shardingsphere.sharding.merge.dal.show.ShowCreateTableMergedResult;
 import org.apache.shardingsphere.sharding.merge.dal.show.ShowIndexMergedResult;
+import org.apache.shardingsphere.sharding.merge.dal.show.ShowTableStatusMergedResult;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.dal.DALStatement;
 import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLExplainStatement;
@@ -31,6 +33,7 @@ import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQ
 import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowDatabasesStatement;
 import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowIndexStatement;
 import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowOtherStatement;
+import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowTableStatusStatement;
 import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.dal.MySQLShowTablesStatement;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +60,7 @@ public final class ShardingDALResultMergerTest {
     public void assertMergeForShowDatabasesStatement() throws SQLException {
         DALStatement dalStatement = new MySQLShowDatabasesStatement();
         SQLStatementContext<?> sqlStatementContext = mockSQLStatementContext(dalStatement);
-        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(null);
+        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(DefaultSchema.LOGIC_NAME, null);
         assertThat(resultMerger.merge(queryResults, sqlStatementContext, null), instanceOf(SingleLocalDataMergedResult.class));
     }
     
@@ -65,7 +68,7 @@ public final class ShardingDALResultMergerTest {
     public void assertMergeForShowShowTablesStatement() throws SQLException {
         DALStatement dalStatement = new MySQLShowTablesStatement();
         SQLStatementContext<?> sqlStatementContext = mockSQLStatementContext(dalStatement);
-        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(null);
+        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(DefaultSchema.LOGIC_NAME, null);
         assertThat(resultMerger.merge(queryResults, sqlStatementContext, null), instanceOf(LogicTablesMergedResult.class));
     }
     
@@ -73,7 +76,7 @@ public final class ShardingDALResultMergerTest {
     public void assertMergeForShowCreateTableStatement() throws SQLException {
         DALStatement dalStatement = new MySQLShowCreateTableStatement();
         SQLStatementContext<?> sqlStatementContext = mockSQLStatementContext(dalStatement);
-        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(null);
+        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(DefaultSchema.LOGIC_NAME, null);
         assertThat(resultMerger.merge(queryResults, sqlStatementContext, null), instanceOf(ShowCreateTableMergedResult.class));
     }
     
@@ -81,7 +84,7 @@ public final class ShardingDALResultMergerTest {
     public void assertMergeForShowOtherStatement() throws SQLException {
         DALStatement dalStatement = new MySQLShowOtherStatement();
         SQLStatementContext<?> sqlStatementContext = mockSQLStatementContext(dalStatement);
-        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(null);
+        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(DefaultSchema.LOGIC_NAME, null);
         assertThat(resultMerger.merge(queryResults, sqlStatementContext, null), instanceOf(TransparentMergedResult.class));
     }
     
@@ -89,7 +92,7 @@ public final class ShardingDALResultMergerTest {
     public void assertMergeForDescribeStatement() throws SQLException {
         DALStatement dalStatement = new MySQLExplainStatement();
         SQLStatementContext<?> sqlStatementContext = mockSQLStatementContext(dalStatement);
-        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(mock(ShardingRule.class));
+        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(DefaultSchema.LOGIC_NAME, mock(ShardingRule.class));
         assertThat(resultMerger.merge(queryResults, sqlStatementContext, null), instanceOf(TransparentMergedResult.class));
     }
     
@@ -97,8 +100,16 @@ public final class ShardingDALResultMergerTest {
     public void assertMergeForShowIndexStatement() throws SQLException {
         DALStatement dalStatement = new MySQLShowIndexStatement();
         SQLStatementContext<?> sqlStatementContext = mockSQLStatementContext(dalStatement);
-        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(mock(ShardingRule.class));
+        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(DefaultSchema.LOGIC_NAME, mock(ShardingRule.class));
         assertThat(resultMerger.merge(queryResults, sqlStatementContext, null), instanceOf(ShowIndexMergedResult.class));
+    }
+    
+    @Test
+    public void assertMergeForShowTableStatusStatement() throws SQLException {
+        DALStatement dalStatement = new MySQLShowTableStatusStatement();
+        SQLStatementContext<?> sqlStatementContext = mockSQLStatementContext(dalStatement);
+        ShardingDALResultMerger resultMerger = new ShardingDALResultMerger(DefaultSchema.LOGIC_NAME, mock(ShardingRule.class));
+        assertThat(resultMerger.merge(queryResults, sqlStatementContext, null), instanceOf(ShowTableStatusMergedResult.class));
     }
     
     @SuppressWarnings("unchecked")

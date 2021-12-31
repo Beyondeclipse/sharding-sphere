@@ -29,13 +29,18 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.Month;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public final class ResultSetUtilTest {
     @Test
@@ -46,17 +51,32 @@ public final class ResultSetUtilTest {
     }
     
     @Test
-    public void assertConvertLocalDateTime() {
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        LocalDateTime dateTime = (LocalDateTime) ResultSetUtil.convertValue(timestamp, LocalDateTime.class);
-        assertNotNull(dateTime);
-        assertThat(dateTime.toString(), is(timestamp.toLocalDateTime().toString()));
+    public void assertConvertLocalDateTimeValue() {
+        LocalDateTime localDateTime = LocalDateTime.of(2021, Month.DECEMBER, 23, 19, 30);
+        assertThat(ResultSetUtil.convertValue(localDateTime, Timestamp.class), is(Timestamp.valueOf(localDateTime)));
+    }
+    
+    @Test
+    public void assertConvertTimestampValue() {
+        LocalDateTime localDateTime = LocalDateTime.of(2021, Month.DECEMBER, 23, 19, 30);
+        Timestamp timestamp = Timestamp.valueOf(localDateTime);
+        assertThat(ResultSetUtil.convertValue(timestamp, LocalDateTime.class), is(localDateTime));
+        assertThat(ResultSetUtil.convertValue(timestamp, LocalDate.class), is(LocalDate.of(2021, Month.DECEMBER, 23)));
+        assertThat(ResultSetUtil.convertValue(timestamp, LocalTime.class), is(LocalTime.of(19, 30)));
+    }
+
+    @Test
+    public void assertConvertBooleanValue() {
+        String dbFalse = "-2";
+        String dbTrue = "1";
+        assertThat(ResultSetUtil.convertValue(dbFalse, boolean.class), is(false));
+        assertThat(ResultSetUtil.convertValue(dbTrue, boolean.class), is(true));
     }
     
     @Test
     public void assertConvertNumberValueSuccess() {
         assertThat(ResultSetUtil.convertValue("1", String.class), is("1"));
-        assertThat(ResultSetUtil.convertValue(1, boolean.class), is(true));
+        assertTrue((boolean) ResultSetUtil.convertValue(1, boolean.class));
         assertThat(ResultSetUtil.convertValue((byte) 1, byte.class), is((byte) 1));
         assertThat(ResultSetUtil.convertValue((short) 1, short.class), is((short) 1));
         assertThat(ResultSetUtil.convertValue(new BigDecimal("1"), int.class), is(1));
@@ -77,7 +97,7 @@ public final class ResultSetUtilTest {
     
     @Test
     public void assertConvertNullValue() {
-        assertThat(ResultSetUtil.convertValue(null, boolean.class), is(false));
+        assertFalse((boolean) ResultSetUtil.convertValue(null, boolean.class));
         assertThat(ResultSetUtil.convertValue(null, byte.class), is((byte) 0));
         assertThat(ResultSetUtil.convertValue(null, short.class), is((short) 0));
         assertThat(ResultSetUtil.convertValue(null, int.class), is(0));

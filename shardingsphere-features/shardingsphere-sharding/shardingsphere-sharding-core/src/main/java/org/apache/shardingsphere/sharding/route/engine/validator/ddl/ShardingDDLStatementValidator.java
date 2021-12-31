@@ -89,9 +89,8 @@ public abstract class ShardingDDLStatementValidator<T extends DDLStatement> impl
      * @return whether route unit and data node are different size or not
      */
     protected boolean isRouteUnitDataNodeDifferentSize(final ShardingRule shardingRule, final RouteContext routeContext, final String tableName) {
-        int dataNodeSize = shardingRule.isShardingTable(tableName) || shardingRule.isBroadcastTable(tableName) 
-                ? shardingRule.getTableRule(tableName).getActualDataNodes().size() : 1;
-        return dataNodeSize != routeContext.getRouteUnits().size();
+        return (shardingRule.isShardingTable(tableName) || shardingRule.isBroadcastTable(tableName)) 
+                && shardingRule.getTableRule(tableName).getActualDataNodes().size() != routeContext.getRouteUnits().size();
     }
     
     /**
@@ -99,6 +98,7 @@ public abstract class ShardingDDLStatementValidator<T extends DDLStatement> impl
      *
      * @param schema ShardingSphere schema
      * @param index index
+     * @return whether schema contains index or not
      */
     protected boolean isSchemaContainsIndex(final ShardingSphereSchema schema, final IndexSegment index) {
         return schema.getAllTableNames().stream().anyMatch(each -> schema.get(each).getIndexes().containsKey(index.getIdentifier().getValue()));

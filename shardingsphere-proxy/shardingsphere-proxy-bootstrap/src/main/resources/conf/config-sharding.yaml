@@ -26,7 +26,7 @@
 #
 #dataSources:
 #  ds_0:
-#    url: jdbc:postgresql://127.0.0.1:5432/demo_ds_0?serverTimezone=UTC&useSSL=false
+#    url: jdbc:postgresql://127.0.0.1:5432/demo_ds_0
 #    username: postgres
 #    password: postgres
 #    connectionTimeoutMilliseconds: 30000
@@ -34,9 +34,8 @@
 #    maxLifetimeMilliseconds: 1800000
 #    maxPoolSize: 50
 #    minPoolSize: 1
-#    maintenanceIntervalMilliseconds: 30000
 #  ds_1:
-#    url: jdbc:postgresql://127.0.0.1:5432/demo_ds_1?serverTimezone=UTC&useSSL=false
+#    url: jdbc:postgresql://127.0.0.1:5432/demo_ds_1
 #    username: postgres
 #    password: postgres
 #    connectionTimeoutMilliseconds: 30000
@@ -44,7 +43,6 @@
 #    maxLifetimeMilliseconds: 1800000
 #    maxPoolSize: 50
 #    minPoolSize: 1
-#    maintenanceIntervalMilliseconds: 30000
 #
 #rules:
 #- !SHARDING
@@ -89,12 +87,35 @@
 #      type: INLINE
 #      props:
 #        algorithm-expression: t_order_item_${order_id % 2}
-#  
+#
 #  keyGenerators:
 #    snowflake:
 #      type: SNOWFLAKE
 #      props:
 #        worker-id: 123
+#
+#  scalingName: default_scaling
+#  scaling:
+#    default_scaling:
+#      blockQueueSize: 10000
+#      workerThread: 40
+#      readBatchSize: 1000
+#      rateLimiter:
+#        type: SOURCE
+#        props:
+#          qps: 50
+#      completionDetector:
+#        type: IDLE
+#        props:
+#          incremental-task-idle-minute-threshold: 30
+#      sourceWritingStopper:
+#        type: DEFAULT
+#      dataConsistencyChecker:
+#        type: DATA_MATCH
+#        props:
+#          chunk-size: 1000
+#      checkoutLocker:
+#        type: DEFAULT
 
 ######################################################################################################
 #
@@ -114,7 +135,6 @@
 #    maxLifetimeMilliseconds: 1800000
 #    maxPoolSize: 50
 #    minPoolSize: 1
-#    maintenanceIntervalMilliseconds: 30000
 #  ds_1:
 #    url: jdbc:mysql://127.0.0.1:3306/demo_ds_1?serverTimezone=UTC&useSSL=false
 #    username: root
@@ -124,7 +144,6 @@
 #    maxLifetimeMilliseconds: 1800000
 #    maxPoolSize: 50
 #    minPoolSize: 1
-#    maintenanceIntervalMilliseconds: 30000
 #
 #rules:
 #- !SHARDING
@@ -175,3 +194,26 @@
 #      type: SNOWFLAKE
 #      props:
 #        worker-id: 123
+#
+#  scalingName: default_scaling
+#  scaling:
+#    default_scaling:
+#      blockQueueSize: 10000
+#      workerThread: 40
+#      readBatchSize: 1000
+#      rateLimiter:
+#        type: SOURCE
+#        props:
+#          qps: 50
+#      completionDetector:
+#        type: IDLE
+#        props:
+#          incremental-task-idle-minute-threshold: 30
+#      sourceWritingStopper:
+#        type: DEFAULT
+#      dataConsistencyChecker:
+#        type: DATA_MATCH
+#        props:
+#          chunk-size: 1000
+#      checkoutLocker:
+#        type: DEFAULT

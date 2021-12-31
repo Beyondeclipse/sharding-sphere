@@ -45,11 +45,15 @@ public final class ReadwriteSplittingRuleStatementConverter {
      */
     public static ReadwriteSplittingRuleConfiguration convert(final Collection<ReadwriteSplittingRuleSegment> ruleSegments) {
         Collection<ReadwriteSplittingDataSourceRuleConfiguration> dataSources = new LinkedList<>();
-        Map<String, ShardingSphereAlgorithmConfiguration> loadBalancers = new HashMap<>();
+        Map<String, ShardingSphereAlgorithmConfiguration> loadBalancers = new HashMap<>(ruleSegments.size(), 1);
         for (ReadwriteSplittingRuleSegment each : ruleSegments) {
-            String loadBalancerName = getLoadBalancerName(each.getName(), each.getLoadBalancer());
-            dataSources.add(createDataSourceRuleConfiguration(each.getName(), loadBalancerName, each));
-            loadBalancers.put(loadBalancerName, createLoadBalancer(each));
+            if (null != each.getLoadBalancer()) {
+                String loadBalancerName = getLoadBalancerName(each.getName(), each.getLoadBalancer());
+                loadBalancers.put(loadBalancerName, createLoadBalancer(each));
+                dataSources.add(createDataSourceRuleConfiguration(each.getName(), loadBalancerName, each));
+            } else {
+                dataSources.add(createDataSourceRuleConfiguration(each.getName(), null, each));
+            }
         }
         return new ReadwriteSplittingRuleConfiguration(dataSources, loadBalancers);
     }

@@ -21,18 +21,33 @@ notifications:
   pullrequests: notifications@shardingsphere.apache.org
 
 github:
-  description: Distributed Database Ecosphere
+  description: Building a Standard Layer & Ecosystem Above Heterogeneous Databases
   labels:
+    - database-plus
     - shardingsphere
     - database
     - distributed-database
     - distributed-sql-database
     - distributed-transactions
     - sql
-    - shard
     - database-cluster
     - mysql
     - postgresql
+    - shard
+    - readwrite-splitting
+    - encrypt
+    - hacktoberfest
+    - dba
+    - devops
+    - rdbms
+    - oltp
+    - bigdata
+    - machine-learning
   features:
     issues: true
     projects: true
+    wiki: true
+  collaborators:
+    - booooodv
+    - yy2so
+    - zhujunxxxxx

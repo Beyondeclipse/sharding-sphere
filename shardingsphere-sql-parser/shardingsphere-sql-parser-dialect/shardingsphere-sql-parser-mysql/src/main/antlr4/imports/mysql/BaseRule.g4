@@ -46,6 +46,7 @@ customKeyword
     | AUTOCOMMIT
     | INNODB
     | REDO_LOG
+    | LAST_VALUE
     ;
     
 literals
@@ -614,7 +615,7 @@ schemaNames
     ;
     
 charsetName
-    : textOrIdentifier | BINARY
+    : textOrIdentifier | BINARY | DEFAULT
     ;
     
 schemaPairs
@@ -640,6 +641,10 @@ indexName
 constraintName
     : identifier
     ;
+
+delimiterName
+    : textOrIdentifier | ('\\'. | ~('\'' | '"' | '`' | '\\'))+
+    ; 
 
 userIdentifierOrText
     : textOrIdentifier (AT_ textOrIdentifier)?
@@ -789,13 +794,18 @@ triggerOrder
     
 expr
     : booleanPrimary
-    | expr logicalOperator expr
+    | expr andOperator expr
+    | expr orOperator expr
     | expr XOR expr
     | notOperator expr
     ;
     
-logicalOperator
-    : OR | OR_ | AND | AND_
+andOperator
+    : AND | AND_
+    ;
+    
+orOperator
+    : OR | OR_
     ;
     
 notOperator
@@ -882,7 +892,7 @@ aggregationFunction
     ;
     
 aggregationFunctionName
-    : MAX | MIN | SUM | COUNT | AVG
+    : MAX | MIN | SUM | COUNT | AVG | BIT_XOR
     ;
     
 distinct
@@ -890,11 +900,11 @@ distinct
     ;
     
 overClause
-    : OVER (LP_ windowSpecification RP_ | identifier)
+    : OVER (windowSpecification | identifier)
     ;
     
 windowSpecification
-    : identifier? (PARTITION BY expr (COMMA_ expr)*)? orderByClause? frameClause?
+    : LP_ identifier? (PARTITION BY expr (COMMA_ expr)*)? orderByClause? frameClause? RP_
     ;
     
 frameClause
@@ -1001,7 +1011,8 @@ charFunction
     ;
     
 trimFunction
-    : TRIM LP_ (LEADING | BOTH | TRAILING) string_ FROM string_ RP_
+    : TRIM LP_ ((LEADING | BOTH | TRAILING) string_? FROM)? string_ RP_
+    | TRIM LP_ (string_ FROM)? string_ RP_
     ;
     
 valuesFunction
@@ -1037,7 +1048,8 @@ regularFunctionName
     : IF | LOCALTIME | LOCALTIMESTAMP | REPLACE | INTERVAL | MOD
     | DATABASE | SCHEMA | LEFT | RIGHT | DATE | DAY | GEOMETRYCOLLECTION
     | LINESTRING | MULTILINESTRING | MULTIPOINT | MULTIPOLYGON | POINT | POLYGON
-    | TIME | TIMESTAMP | TIMESTAMP_ADD | TIMESTAMP_DIFF | DATE | CURRENT_TIMESTAMP | identifier
+    | TIME | TIMESTAMP | TIMESTAMP_ADD | TIMESTAMP_DIFF | DATE | CURRENT_TIMESTAMP 
+    | CURRENT_DATE | CURRENT_TIME | UTC_TIMESTAMP | identifier
     ;
     
 matchExpression
@@ -1102,6 +1114,7 @@ dataType
     | dataTypeName = (BOOL | BOOLEAN)
     | dataTypeName = CHAR fieldLength? charsetWithOptBinary?
     | (dataTypeName = NCHAR | dataTypeName = NATIONAL CHAR) fieldLength? BINARY?
+    | dataTypeName = SIGNED (INTEGER | INT)?
     | dataTypeName = BINARY fieldLength?
     | (dataTypeName = CHAR VARYING | dataTypeName = VARCHAR) fieldLength charsetWithOptBinary?
     | (dataTypeName = NATIONAL VARCHAR | dataTypeName = NVARCHAR | dataTypeName = NCHAR VARCHAR | dataTypeName = NATIONAL CHAR VARYING | dataTypeName = NCHAR VARYING) fieldLength BINARY?
@@ -1109,6 +1122,7 @@ dataType
     | dataTypeName = YEAR fieldLength? fieldOptions?
     | dataTypeName = DATE
     | dataTypeName = TIME typeDatetimePrecision?
+    | dataTypeName = UNSIGNED (INTEGER | INT)?
     | dataTypeName = TIMESTAMP typeDatetimePrecision?
     | dataTypeName = DATETIME typeDatetimePrecision?
     | dataTypeName = TINYBLOB

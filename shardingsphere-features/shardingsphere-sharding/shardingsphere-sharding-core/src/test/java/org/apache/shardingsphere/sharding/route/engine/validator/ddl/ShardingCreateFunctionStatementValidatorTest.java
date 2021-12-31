@@ -28,6 +28,7 @@ import org.apache.shardingsphere.sharding.rule.ShardingRule;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.routine.RoutineBodySegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.ddl.routine.ValidStatementSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.TableNameSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.CreateFunctionStatement;
 import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
 import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.ddl.MySQLCreateFunctionStatement;
@@ -48,11 +49,11 @@ public final class ShardingCreateFunctionStatementValidatorTest {
     private ShardingRule shardingRule;
     
     @Test
-    public void assertValidateCreateFunctionForMySQL() {
+    public void assertPreValidateCreateFunctionForMySQL() {
         MySQLSelectStatement selectStatement = new MySQLSelectStatement();
-        selectStatement.setFrom(new SimpleTableSegment(0, 0, new IdentifierValue("t_order_item")));
+        selectStatement.setFrom(new SimpleTableSegment(new TableNameSegment(0, 0, new IdentifierValue("t_order_item"))));
         MySQLCreateTableStatement createTableStatement = new MySQLCreateTableStatement();
-        createTableStatement.setTable(new SimpleTableSegment(0, 0, new IdentifierValue("t_order")));
+        createTableStatement.setTable(new SimpleTableSegment(new TableNameSegment(0, 0, new IdentifierValue("t_order"))));
         ValidStatementSegment validStatementSegment = new ValidStatementSegment(0, 0);
         validStatementSegment.setSqlStatement(createTableStatement);
         ValidStatementSegment selectValidStatementSegment = new ValidStatementSegment(0, 0);
@@ -69,9 +70,9 @@ public final class ShardingCreateFunctionStatementValidatorTest {
     }
     
     @Test(expected = ShardingSphereException.class)
-    public void assertValidateCreateFunctionWithShardingTableForMySQL() {
+    public void assertPreValidateCreateFunctionWithShardingTableForMySQL() {
         MySQLSelectStatement selectStatement = new MySQLSelectStatement();
-        selectStatement.setFrom(new SimpleTableSegment(0, 0, new IdentifierValue("t_order")));
+        selectStatement.setFrom(new SimpleTableSegment(new TableNameSegment(0, 0, new IdentifierValue("t_order"))));
         ValidStatementSegment validStatementSegment = new ValidStatementSegment(0, 0);
         validStatementSegment.setSqlStatement(selectStatement);
         RoutineBodySegment routineBody = new RoutineBodySegment(0, 0);
@@ -83,9 +84,9 @@ public final class ShardingCreateFunctionStatementValidatorTest {
     }
     
     @Test(expected = NoSuchTableException.class)
-    public void assertValidateCreateFunctionWithNoSuchTableForMySQL() {
+    public void assertPreValidateCreateFunctionWithNoSuchTableForMySQL() {
         MySQLSelectStatement selectStatement = new MySQLSelectStatement();
-        selectStatement.setFrom(new SimpleTableSegment(0, 0, new IdentifierValue("t_order")));
+        selectStatement.setFrom(new SimpleTableSegment(new TableNameSegment(0, 0, new IdentifierValue("t_order"))));
         ValidStatementSegment validStatementSegment = new ValidStatementSegment(0, 0);
         validStatementSegment.setSqlStatement(selectStatement);
         RoutineBodySegment routineBody = new RoutineBodySegment(0, 0);
@@ -97,9 +98,9 @@ public final class ShardingCreateFunctionStatementValidatorTest {
     }
     
     @Test(expected = TableExistsException.class)
-    public void assertValidateCreateFunctionWithTableExistsForMySQL() {
+    public void assertPreValidateCreateFunctionWithTableExistsForMySQL() {
         MySQLCreateTableStatement createTableStatement = new MySQLCreateTableStatement();
-        createTableStatement.setTable(new SimpleTableSegment(0, 0, new IdentifierValue("t_order")));
+        createTableStatement.setTable(new SimpleTableSegment(new TableNameSegment(0, 0, new IdentifierValue("t_order"))));
         ValidStatementSegment validStatementSegment = new ValidStatementSegment(0, 0);
         validStatementSegment.setSqlStatement(createTableStatement);
         RoutineBodySegment routineBody = new RoutineBodySegment(0, 0);

@@ -41,6 +41,7 @@ import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.Del
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.JoinTableSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SubqueryTableSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.TableNameSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.TableSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.SQLStatement;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.CreateTableStatement;
@@ -58,9 +59,9 @@ import java.util.Optional;
 @Getter
 public final class TableExtractor {
     
-    private Collection<SimpleTableSegment> rewriteTables = new LinkedList<>();
+    private final Collection<SimpleTableSegment> rewriteTables = new LinkedList<>();
     
-    private Collection<TableSegment> tableContext = new LinkedList<>();
+    private final Collection<TableSegment> tableContext = new LinkedList<>();
     
     /**
      * Extract table that should be rewrite from select statement.
@@ -86,19 +87,9 @@ public final class TableExtractor {
         if (SelectStatementHandler.getLockSegment(selectStatement).isPresent()) {
             extractTablesFromLock(SelectStatementHandler.getLockSegment(selectStatement).get());
         }
-    }
-    
-    /**
-     * Extract tables with from clause.
-     *
-     * @param selectStatement select statement
-     * @return tables with from clause
-     */
-    public Collection<SimpleTableSegment> extractTablesWithFromClause(final SelectStatement selectStatement) {
-        if (null != selectStatement.getFrom()) {
-            extractTablesFromTableSegment(selectStatement.getFrom());
+        if (!selectStatement.getUnionSegments().isEmpty()) {
+            selectStatement.getUnionSegments().forEach(each -> extractTablesFromSelect(each.getSelectStatement()));
         }
-        return rewriteTables;
     }
     
     private void extractTablesFromTableSegment(final TableSegment tableSegment) {
@@ -118,9 +109,7 @@ public final class TableExtractor {
         if (tableSegment instanceof DeleteMultiTableSegment) {
             DeleteMultiTableSegment deleteMultiTableSegment = (DeleteMultiTableSegment) tableSegment;
             rewriteTables.addAll(deleteMultiTableSegment.getActualDeleteTables());
-            if (deleteMultiTableSegment.getRelationTable() instanceof JoinTableSegment) {
-                extractTablesFromJoinTableSegment((JoinTableSegment) deleteMultiTableSegment.getRelationTable());
-            }
+            extractTablesFromTableSegment(deleteMultiTableSegment.getRelationTable());
         }
     }
     
@@ -134,7 +123,7 @@ public final class TableExtractor {
         if (expressionSegment instanceof ColumnSegment) {
             if (((ColumnSegment) expressionSegment).getOwner().isPresent() && needRewrite(((ColumnSegment) expressionSegment).getOwner().get())) {
                 OwnerSegment ownerSegment = ((ColumnSegment) expressionSegment).getOwner().get();
-                rewriteTables.add(new SimpleTableSegment(ownerSegment.getStartIndex(), ownerSegment.getStopIndex(), ownerSegment.getIdentifier()));
+                rewriteTables.add(new SimpleTableSegment(new TableNameSegment(ownerSegment.getStartIndex(), ownerSegment.getStopIndex(), ownerSegment.getIdentifier())));
             }
         }
         if (expressionSegment instanceof ListExpression) {
@@ -170,12 +159,12 @@ public final class TableExtractor {
             } else if (each instanceof OwnerAvailable) {
                 if (((OwnerAvailable) each).getOwner().isPresent() && needRewrite(((OwnerAvailable) each).getOwner().get())) {
                     OwnerSegment ownerSegment = ((OwnerAvailable) each).getOwner().get();
-                    rewriteTables.add(new SimpleTableSegment(ownerSegment.getStartIndex(), ownerSegment.getStopIndex(), ownerSegment.getIdentifier()));
+                    rewriteTables.add(new SimpleTableSegment(new TableNameSegment(ownerSegment.getStartIndex(), ownerSegment.getStopIndex(), ownerSegment.getIdentifier())));
                 }
             } else if (each instanceof ColumnProjectionSegment) {
                 if (((ColumnProjectionSegment) each).getColumn().getOwner().isPresent() && needRewrite(((ColumnProjectionSegment) each).getColumn().getOwner().get())) {
                     OwnerSegment ownerSegment = ((ColumnProjectionSegment) each).getColumn().getOwner().get();
-                    rewriteTables.add(new SimpleTableSegment(ownerSegment.getStartIndex(), ownerSegment.getStopIndex(), ownerSegment.getIdentifier()));
+                    rewriteTables.add(new SimpleTableSegment(new TableNameSegment(ownerSegment.getStartIndex(), ownerSegment.getStopIndex(), ownerSegment.getIdentifier())));
                 }
             }
         }
@@ -186,7 +175,7 @@ public final class TableExtractor {
             if (each instanceof ColumnOrderByItemSegment) {
                 Optional<OwnerSegment> owner = ((ColumnOrderByItemSegment) each).getColumn().getOwner();
                 if (owner.isPresent() && needRewrite(owner.get())) {
-                    rewriteTables.add(new SimpleTableSegment(owner.get().getStartIndex(), owner.get().getStopIndex(), owner.get().getIdentifier()));
+                    rewriteTables.add(new SimpleTableSegment(new TableNameSegment(owner.get().getStartIndex(), owner.get().getStopIndex(), owner.get().getIdentifier())));
                 }
             }
         }
@@ -234,7 +223,7 @@ public final class TableExtractor {
      */
     public void extractTablesFromUpdate(final UpdateStatement updateStatement) {
         extractTablesFromTableSegment(updateStatement.getTableSegment());
-        updateStatement.getSetAssignment().getAssignments().forEach(each -> extractTablesFromExpression(each.getColumn()));
+        updateStatement.getSetAssignment().getAssignments().forEach(each -> extractTablesFromExpression(each.getColumns().get(0)));
         if (updateStatement.getWhere().isPresent()) {
             extractTablesFromExpression(updateStatement.getWhere().get().getExpr());
         }

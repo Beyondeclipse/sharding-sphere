@@ -24,6 +24,7 @@ import org.apache.shardingsphere.infra.metadata.schema.ShardingSphereSchema;
 import org.apache.shardingsphere.sharding.route.engine.validator.ddl.impl.ShardingCreateViewStatementValidator;
 import org.apache.shardingsphere.sharding.rule.ShardingRule;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
+import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.TableNameSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.ddl.CreateViewStatement;
 import org.apache.shardingsphere.sql.parser.sql.common.value.identifier.IdentifierValue;
 import org.apache.shardingsphere.sql.parser.sql.dialect.statement.mysql.ddl.MySQLCreateViewStatement;
@@ -42,9 +43,9 @@ public final class ShardingCreateViewStatementValidatorTest {
     private ShardingRule shardingRule;
     
     @Test
-    public void assertValidateCreateViewForMySQL() {
+    public void assertPreValidateCreateViewForMySQL() {
         MySQLSelectStatement selectStatement = new MySQLSelectStatement();
-        selectStatement.setFrom(new SimpleTableSegment(0, 0, new IdentifierValue("t_order_item")));
+        selectStatement.setFrom(new SimpleTableSegment(new TableNameSegment(0, 0, new IdentifierValue("t_order_item"))));
         MySQLCreateViewStatement sqlStatement = new MySQLCreateViewStatement();
         sqlStatement.setSelect(selectStatement);
         SQLStatementContext<CreateViewStatement> sqlStatementContext = new CommonSQLStatementContext<>(sqlStatement);
@@ -52,9 +53,9 @@ public final class ShardingCreateViewStatementValidatorTest {
     }
     
     @Test(expected = ShardingSphereException.class)
-    public void assertValidateCreateViewWithShardingTableForMySQL() {
+    public void assertPreValidateCreateViewWithShardingTableForMySQL() {
         MySQLSelectStatement selectStatement = new MySQLSelectStatement();
-        selectStatement.setFrom(new SimpleTableSegment(0, 0, new IdentifierValue("t_order")));
+        selectStatement.setFrom(new SimpleTableSegment(new TableNameSegment(0, 0, new IdentifierValue("t_order"))));
         MySQLCreateViewStatement sqlStatement = new MySQLCreateViewStatement();
         sqlStatement.setSelect(selectStatement);
         ShardingSphereSchema schema = mock(ShardingSphereSchema.class);

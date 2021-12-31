@@ -17,7 +17,6 @@
 
 package org.apache.shardingsphere.infra.binder.statement.dml;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import org.apache.shardingsphere.infra.binder.segment.insert.keygen.GeneratedKeyContext;
 import org.apache.shardingsphere.infra.binder.segment.insert.keygen.engine.GeneratedKeyContextEngine;
@@ -28,6 +27,7 @@ import org.apache.shardingsphere.infra.binder.segment.table.TablesContext;
 import org.apache.shardingsphere.infra.binder.statement.CommonSQLStatementContext;
 import org.apache.shardingsphere.infra.binder.type.SchemaAvailable;
 import org.apache.shardingsphere.infra.binder.type.TableAvailable;
+import org.apache.shardingsphere.infra.exception.SchemaNotExistedException;
 import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 import org.apache.shardingsphere.infra.metadata.schema.ShardingSphereSchema;
 import org.apache.shardingsphere.sql.parser.sql.common.extractor.TableExtractor;
@@ -38,7 +38,6 @@ import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.column.Column
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.column.OnDuplicateKeyColumnsSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.ExpressionSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.dml.expr.subquery.SubquerySegment;
-import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.SchemaSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.segment.generic.table.SimpleTableSegment;
 import org.apache.shardingsphere.sql.parser.sql.common.statement.dml.InsertStatement;
 import org.apache.shardingsphere.sql.parser.sql.dialect.handler.dml.InsertStatementHandler;
@@ -52,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * Insert SQL statement context.
@@ -72,33 +70,35 @@ public final class InsertStatementContext extends CommonSQLStatementContext<Inse
     
     private final GeneratedKeyContext generatedKeyContext;
     
+    private final String schemaName;
+    
     public InsertStatementContext(final Map<String, ShardingSphereMetaData> metaDataMap, final List<Object> parameters, final InsertStatement sqlStatement, final String defaultSchemaName) {
         super(sqlStatement);
-        ShardingSphereSchema schema = getSchema(metaDataMap, defaultSchemaName);
-        List<String> insertColumnNames = getInsertColumnNames();
-        columnNames = useDefaultColumns() ? schema.getAllColumnNames(sqlStatement.getTable().getTableName().getIdentifier().getValue()) : insertColumnNames;
         AtomicInteger parametersOffset = new AtomicInteger(0);
         insertValueContexts = getInsertValueContexts(parameters, parametersOffset);
         insertSelectContext = getInsertSelectContext(metaDataMap, parameters, parametersOffset, defaultSchemaName).orElse(null);
-        tablesContext = getTablesContext(sqlStatement);
         onDuplicateKeyUpdateValueContext = getOnDuplicateKeyUpdateValueContext(parameters, parametersOffset).orElse(null);
+        tablesContext = new TablesContext(getAllSimpleTableSegments());
+        ShardingSphereSchema schema = getSchema(metaDataMap, defaultSchemaName);
+        List<String> insertColumnNames = getInsertColumnNames();
+        columnNames = useDefaultColumns() ? schema.getAllColumnNames(sqlStatement.getTable().getTableName().getIdentifier().getValue()) : insertColumnNames;
         generatedKeyContext = new GeneratedKeyContextEngine(sqlStatement, schema).createGenerateKeyContext(insertColumnNames, getAllValueExpressions(sqlStatement), parameters).orElse(null);
+        this.schemaName = defaultSchemaName;
     }
     
     private ShardingSphereSchema getSchema(final Map<String, ShardingSphereMetaData> metaDataMap, final String defaultSchemaName) {
-        String schemaName = getSchemaName().orElse(defaultSchemaName);
+        String schemaName = tablesContext.getSchemaName().orElse(defaultSchemaName);
         ShardingSphereMetaData metaData = metaDataMap.get(schemaName);
-        Preconditions.checkState(null != metaData, String.format("Can not get metaData by schemaName [%s].", schemaName));
+        if (null == metaData) {
+            throw new SchemaNotExistedException(schemaName);
+        }
         return metaData.getSchema();
     }
     
-    private TablesContext getTablesContext(final InsertStatement sqlStatement) {
-        List<SimpleTableSegment> result = new LinkedList<>();
-        result.add(sqlStatement.getTable());
-        if (sqlStatement.getInsertSelect().isPresent()) {
-            result.addAll(insertSelectContext.getSelectStatementContext().getAllSimpleTableSegments());
-        }
-        return new TablesContext(result);
+    private Collection<SimpleTableSegment> getAllSimpleTableSegments() {
+        TableExtractor tableExtractor = new TableExtractor();
+        tableExtractor.extractTablesFromInsert(getSqlStatement());
+        return tableExtractor.getRewriteTables();
     }
     
     private List<InsertValueContext> getInsertValueContexts(final List<Object> parameters, final AtomicInteger parametersOffset) {
@@ -183,9 +183,7 @@ public final class InsertStatementContext extends CommonSQLStatementContext<Inse
     
     @Override
     public Collection<SimpleTableSegment> getAllTables() {
-        TableExtractor tableExtractor = new TableExtractor();
-        tableExtractor.extractTablesFromInsert(getSqlStatement());
-        return tableExtractor.getRewriteTables();
+        return tablesContext.getTables();
     }
     
     /**
@@ -224,7 +222,7 @@ public final class InsertStatementContext extends CommonSQLStatementContext<Inse
     private List<String> getColumnNamesForSetAssignment(final SetAssignmentSegment setAssignment) {
         List<String> result = new LinkedList<>();
         for (AssignmentSegment each : setAssignment.getAssignments()) {
-            result.add(each.getColumn().getIdentifier().getValue().toLowerCase());
+            result.add(each.getColumns().get(0).getIdentifier().getValue().toLowerCase());
         }
         return result;
     }
@@ -239,7 +237,7 @@ public final class InsertStatementContext extends CommonSQLStatementContext<Inse
     
     private List<List<ExpressionSegment>> getAllValueExpressions(final InsertStatement insertStatement) {
         Optional<SetAssignmentSegment> setAssignment = InsertStatementHandler.getSetAssignmentSegment(insertStatement);
-        return setAssignment.isPresent() ? Collections.singletonList(getAllValueExpressionsFromSetAssignment(setAssignment.get())) : getAllValueExpressionsFromValues(insertStatement.getValues());
+        return setAssignment.map(each -> Collections.singletonList(getAllValueExpressionsFromSetAssignment(each))).orElseGet(() -> getAllValueExpressionsFromValues(insertStatement.getValues()));
     }
     
     private List<ExpressionSegment> getAllValueExpressionsFromSetAssignment(final SetAssignmentSegment setAssignment) {
@@ -256,16 +254,5 @@ public final class InsertStatementContext extends CommonSQLStatementContext<Inse
             result.add(each.getValues());
         }
         return result;
-    }
-    
-    @Override
-    public Collection<SchemaSegment> getSchemas() {
-        return getAllTables().stream().filter(each -> each.getOwner().isPresent()).map(each -> each.getOwner().get())
-                .map(each -> new SchemaSegment(each.getStartIndex(), each.getStopIndex(), each.getIdentifier())).collect(Collectors.toList());
-    }
-    
-    @Override
-    public Optional<String> getSchemaName() {
-        return getSchemas().stream().findFirst().map(each -> each.getIdentifier().getValue());
     }
 }

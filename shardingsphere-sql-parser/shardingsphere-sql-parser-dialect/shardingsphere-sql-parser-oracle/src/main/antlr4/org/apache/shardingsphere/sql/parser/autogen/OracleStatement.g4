@@ -53,5 +53,15 @@ execute
     | setConstraints
     | analyze
     | associateStatistics
+    | disassociateStatistics
+    | audit
+    | noAudit
+    | comment
+    | flashbackDatabase
+    | flashbackTable
+    | purge
+    | rename
+    | createDatabase
+    | createDatabaseLink
     ) SEMI_?
     ;

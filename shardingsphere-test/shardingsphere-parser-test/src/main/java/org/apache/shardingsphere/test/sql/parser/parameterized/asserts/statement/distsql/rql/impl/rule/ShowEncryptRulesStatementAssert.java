@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 import org.apache.shardingsphere.encrypt.distsql.parser.statement.ShowEncryptRulesStatement;
 import org.apache.shardingsphere.test.sql.parser.parameterized.asserts.SQLCaseAssertContext;
 import org.apache.shardingsphere.test.sql.parser.parameterized.asserts.segment.schema.SchemaAssert;
-import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.statement.distsql.impl.ShowEncryptRulesStatementTestCase;
+import org.apache.shardingsphere.test.sql.parser.parameterized.jaxb.cases.domain.statement.distsql.rql.ShowEncryptRulesStatementTestCase;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -32,13 +32,13 @@ import static org.junit.Assert.assertTrue;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ShowEncryptRulesStatementAssert {
-
+    
     /**
      * Assert Show encrypt rule statement is correct with expected parser result.
      *
      * @param assertContext assert context
-     * @param actual        actual show encrypt rules statement
-     * @param expected      expected show encrypt rules statement test case
+     * @param actual actual show encrypt rules statement
+     * @param expected expected show encrypt rules statement test case
      */
     public static void assertIs(final SQLCaseAssertContext assertContext, final ShowEncryptRulesStatement actual, final ShowEncryptRulesStatementTestCase expected) {
         if (null != expected.getSchema()) {

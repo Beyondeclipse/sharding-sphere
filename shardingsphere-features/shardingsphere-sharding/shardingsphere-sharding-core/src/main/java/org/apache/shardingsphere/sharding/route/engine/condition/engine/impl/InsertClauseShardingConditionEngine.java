@@ -20,7 +20,7 @@ package org.apache.shardingsphere.sharding.route.engine.condition.engine.impl;
 import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.infra.exception.ShardingSphereException;
-import org.apache.shardingsphere.infra.spi.required.RequiredSPIRegistry;
+import org.apache.shardingsphere.spi.required.RequiredSPIRegistry;
 import org.apache.shardingsphere.infra.datetime.DatetimeService;
 import org.apache.shardingsphere.sharding.route.engine.condition.ExpressionConditionUtils;
 import org.apache.shardingsphere.sharding.route.engine.condition.ShardingCondition;
@@ -89,7 +89,7 @@ public final class InsertClauseShardingConditionEngine implements ShardingCondit
         DatetimeService datetimeService = RequiredSPIRegistry.getRegisteredService(DatetimeService.class);
         for (ExpressionSegment each : insertValueContext.getValueExpressions()) {
             String columnName = columnNames.next();
-            if (shardingRule.isShardingColumn(columnName, tableName)) {
+            if (shardingRule.findShardingColumn(columnName, tableName).isPresent()) {
                 if (each instanceof SimpleExpressionSegment) {
                     result.getValues().add(new ListShardingConditionValue<>(columnName, tableName, Collections.singletonList(getShardingValue((SimpleExpressionSegment) each, parameters))));
                 } else if (ExpressionConditionUtils.isNowExpression(each)) {
@@ -121,9 +121,9 @@ public final class InsertClauseShardingConditionEngine implements ShardingCondit
     private void appendGeneratedKeyConditions(final InsertStatementContext sqlStatementContext, final List<ShardingCondition> shardingConditions) {
         Optional<GeneratedKeyContext> generatedKey = sqlStatementContext.getGeneratedKeyContext();
         String tableName = sqlStatementContext.getSqlStatement().getTable().getTableName().getIdentifier().getValue();
-        if (generatedKey.isPresent() && generatedKey.get().isGenerated()) {
+        if (generatedKey.isPresent() && generatedKey.get().isGenerated() && shardingRule.findTableRule(tableName).isPresent()) {
             generatedKey.get().getGeneratedValues().addAll(generateKeys(tableName, sqlStatementContext.getValueListCount()));
-            if (shardingRule.isShardingColumn(generatedKey.get().getColumnName(), tableName)) {
+            if (shardingRule.findShardingColumn(generatedKey.get().getColumnName(), tableName).isPresent()) {
                 appendGeneratedKeyCondition(generatedKey.get(), tableName, shardingConditions);
             }
         }

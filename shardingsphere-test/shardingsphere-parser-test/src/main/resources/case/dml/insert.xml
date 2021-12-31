@@ -69,7 +69,7 @@
                     <literal-expression value="insert" start-index="94" stop-index="101" literal-start-index="99" literal-stop-index="106" />
                 </assignment-value>
                 <assignment-value>
-                    <common-expression text="now()" start-index="104" stop-index="108" literal-start-index="109" literal-stop-index="113" />
+                    <function function-name="now" text="now()" start-index="104" stop-index="108" literal-start-index="109" literal-stop-index="113" />
                 </assignment-value>
             </value>
         </values>
@@ -198,6 +198,7 @@
                 </assignment-value>
             </value>
         </values>
+        <comment start-index="7" stop-index="26" text="/*+ index(field1) */"/>
     </insert>
 
     <insert sql-case-id="insert_with_all_placeholders_for_table_identifier" parameters="1, 1, 'init'">
@@ -488,7 +489,11 @@
             <assignment start-index="89" stop-index="111" literal-start-index="94" literal-stop-index="116">
                 <column name="status" start-index="89" stop-index="94" literal-start-index="94" literal-stop-index="99" />
                 <assignment-value>
-                    <common-expression text="VALUES(status)" start-index="98" stop-index="111" literal-start-index="103" literal-stop-index="116"  />
+                    <function function-name="VALUES" text="VALUES(status)" start-index="98" stop-index="111" literal-start-index="103" literal-stop-index="116">
+                        <parameter>
+                            <column name="status" start-index="105" stop-index="110" literal-start-index="110" literal-stop-index="115"/>
+                        </parameter>
+                    </function>
                 </assignment-value>
             </assignment>
         </on-duplicate-key-columns>
@@ -596,7 +601,13 @@
                     <owner name="t_order" start-index="113" stop-index="119" literal-start-index="118" literal-stop-index="124" />
                 </column>
                 <assignment-value>
-                    <common-expression text="VALUES(t_order.status)" start-index="130" stop-index="151" literal-start-index="135" literal-stop-index="156" />
+                    <function function-name="VALUES" text="VALUES(t_order.status)" start-index="130" stop-index="151" literal-start-index="135" literal-stop-index="156">
+                        <parameter>
+                            <column name="status" start-index="137" stop-index="150" literal-start-index="142" literal-stop-index="155">
+                                <owner name="t_order" start-index="137" stop-index="143" literal-start-index="142" literal-stop-index="148" />
+                            </column>
+                        </parameter>
+                    </function>
                 </assignment-value>
             </assignment>
         </on-duplicate-key-columns>
@@ -696,8 +707,7 @@
                     <literal-expression value="1" start-index="59" stop-index="59" />
                 </assignment-value>
                 <assignment-value>
-                    <common-expression text="SUBSTR(?, 1)" literal-text="SUBSTR('init', 1)" literal-start-index="62" literal-stop-index="78" start-index="62" stop-index="73" />
-
+                    <function function-name="SUBSTR" text="SUBSTR(?, 1)" literal-text="SUBSTR('init', 1)" literal-start-index="62" literal-stop-index="78" start-index="62" stop-index="73" />
                 </assignment-value>
             </value>
             <value>
@@ -710,7 +720,7 @@
                     <literal-expression value="2" literal-start-index="86" literal-stop-index="86" />
                 </assignment-value>
                 <assignment-value>
-                    <common-expression text="SUBSTR(?, 1)" literal-text="SUBSTR('init', 1)" start-index="84" stop-index="95" literal-start-index="89" literal-stop-index="105" />
+                    <function function-name="SUBSTR" text="SUBSTR(?, 1)" literal-text="SUBSTR('init', 1)" start-index="84" stop-index="95" literal-start-index="89" literal-stop-index="105" />
                 </assignment-value>
             </value>
         </values>
@@ -833,6 +843,7 @@
                 </assignment-value>
                 <assignment-value>
                     <common-expression text="ST_GeographyFromText('SRID=4326;POINT(100 200)')" start-index="71" stop-index="118" literal-start-index="73" literal-stop-index="120" />
+                    <function function-name="ST_GeographyFromText" text="ST_GeographyFromText('SRID=4326;POINT(100 200)')" start-index="71" stop-index="118" literal-start-index="73" literal-stop-index="120" />
                 </assignment-value>
                 <assignment-value>
                     <parameter-marker-expression value="2" start-index="121" stop-index="128" />
@@ -961,7 +972,7 @@
         <values>
             <value>
                 <assignment-value>
-                    <common-expression text="curdate()" start-index="61" stop-index="69" literal-start-index="61" literal-stop-index="69" />
+                    <function function-name="curdate" text="curdate()" start-index="61" stop-index="69" literal-start-index="61" literal-stop-index="69" />
                 </assignment-value>
                 <assignment-value>
                     <parameter-marker-expression value="0" start-index="72" stop-index="72" />
@@ -1015,7 +1026,7 @@
         </on-duplicate-key-columns>
     </insert>
 
-    <insert sql-case-id="insert_with_unix_timestamp_function" parameters="2019-10-19, 1000, 10">
+    <insert sql-case-id="insert_with_unix_timestamp_function" parameters="'2019-10-19', 1000, 10">
         <table name="t_order" start-index="12" stop-index="18" />
         <columns start-index="19" stop-index="45">
             <column name="status" start-index="20" stop-index="25" />
@@ -1025,15 +1036,20 @@
         <values>
             <value>
                 <assignment-value>
-                    <common-expression text="unix_timestamp(?)" literal-text="unix_timestamp(2019-10-19)" start-index="55" stop-index="71" literal-start-index="55" literal-stop-index="80" />
+                    <function function-name="unix_timestamp" text="unix_timestamp(?)" literal-text="unix_timestamp('2019-10-19')" start-index="55" stop-index="71" literal-start-index="55" literal-stop-index="82">
+                        <parameter>
+                            <literal-expression value="2019-10-19" start-index="70" stop-index="81" />
+                            <parameter-marker-expression value="0" start-index="70" stop-index="70" />
+                        </parameter>
+                    </function>
                 </assignment-value>
                 <assignment-value>
                     <parameter-marker-expression value="1" start-index="74" stop-index="74" />
-                    <literal-expression value="1000" start-index="83" stop-index="86" />
+                    <literal-expression value="1000" start-index="85" stop-index="88" />
                 </assignment-value>
                 <assignment-value>
                     <parameter-marker-expression value="2" start-index="77" stop-index="77" />
-                    <literal-expression value="10" start-index="89" stop-index="90" />
+                    <literal-expression value="10" start-index="91" stop-index="92" />
                 </assignment-value>
             </value>
         </values>
@@ -1064,7 +1080,7 @@
         </values>
     </insert>
 
-    <insert sql-case-id="insert_with_str_to_date" parameters="2019-12-10, 1, 1">
+    <insert sql-case-id="insert_with_str_to_date" parameters="'2019-12-10', 1, 1">
         <table name="t_order" start-index="12" stop-index="18" />
         <columns start-index="19" stop-index="51">
             <column name="present_date" start-index="20" stop-index="31" />
@@ -1075,15 +1091,23 @@
             <value>
                 <assignment-value>
                     <parameter-marker-expression value="0" start-index="89" stop-index="89" />
-                    <common-expression text="str_to_date(?, '%Y-%m-%d')" literal-text="str_to_date(2019-12-10, '%Y-%m-%d')" start-index="61" stop-index="86" literal-start-index="61" literal-stop-index="95" />
+                    <function function-name="str_to_date" text="str_to_date(?, '%Y-%m-%d')" literal-text="str_to_date('2019-12-10', '%Y-%m-%d')" start-index="61" stop-index="86" literal-start-index="61" literal-stop-index="97">
+                        <parameter>
+                            <literal-expression value="2019-12-10" start-index="73" stop-index="73" literal-start-index="73" literal-stop-index="84" />
+                            <parameter-marker-expression value="0" start-index="73" stop-index="73" />
+                        </parameter>
+                        <parameter>
+                            <literal-expression value="%Y-%m-%d" start-index="76" stop-index="85" literal-start-index="87" literal-stop-index="96" />
+                        </parameter>
+                    </function>
                 </assignment-value>
                 <assignment-value>
                     <parameter-marker-expression value="1" start-index="89" stop-index="89" />
-                    <literal-expression value="1" start-index="98" stop-index="98" />
+                    <literal-expression value="1" start-index="100" stop-index="100" />
                 </assignment-value>
                 <assignment-value>
                     <parameter-marker-expression value="2" start-index="92" stop-index="92" />
-                    <literal-expression value="1" start-index="101" stop-index="101" />
+                    <literal-expression value="1" start-index="103" stop-index="103" />
                 </assignment-value>
             </value>
         </values>
@@ -1109,7 +1133,7 @@
             <assignment start-index="51" stop-index="111" literal-stop-index="116">
                 <column name="status" start-index="51" stop-index="56" />
                 <assignment-value>
-                    <common-expression text="convert(to_base64(aes_encrypt(?, 'key')) USING utf8)" literal-text="convert(to_base64(aes_encrypt('init', 'key')) USING utf8)" start-index="60" stop-index="111" literal-start-index="60" literal-stop-index="116" />
+                    <function function-name="convert" text="convert(to_base64(aes_encrypt(?, 'key')) USING utf8)" literal-text="convert(to_base64(aes_encrypt('init', 'key')) USING utf8)" start-index="60" stop-index="111" literal-start-index="60" literal-stop-index="116"/>
                 </assignment-value>
             </assignment>
         </set>
@@ -1118,11 +1142,100 @@
                 <column name="status" start-index="137" stop-index="142" literal-start-index="142" literal-stop-index="147" />
                 <assignment-value>
                     <common-expression text="VALUES(status)" start-index="146" stop-index="159" literal-start-index="151" literal-stop-index="164" />
+                    <function function-name="VALUES" text="VALUES(status)" start-index="146" stop-index="159" literal-start-index="151" literal-stop-index="164">
+                        <parameter>
+                            <column name="status" start-index="153" stop-index="158" literal-start-index="158" literal-stop-index="163" />
+                        </parameter>
+                    </function>
                 </assignment-value>
             </assignment>
         </on-duplicate-key-columns>
     </insert>
 
+    <insert sql-case-id="insert_all_with_all_placeholders" parameters="1, 1, 'init', 2, 2, 'init', 3, 3, 'init'">
+        <multi-table-element start-index="11" stop-index="183" literal-start-index="11" literal-stop-index="198">
+            <table-element>
+                <table name="t_order" start-index="16" stop-index="22" />
+                <columns start-index="24" stop-index="50">
+                    <column name="order_id" start-index="25" stop-index="32" />
+                    <column name="user_id" start-index="35" stop-index="41" />
+                    <column name="status" start-index="44" stop-index="49" />
+                </columns>
+                <values>
+                    <value>
+                        <assignment-value>
+                            <parameter-marker-expression value="0" start-index="60" stop-index="60" />
+                            <literal-expression value="1" start-index="60" stop-index="60" />
+                        </assignment-value>
+                        <assignment-value>
+                            <parameter-marker-expression value="1" start-index="63" stop-index="63" />
+                            <literal-expression value="1" start-index="63" stop-index="63" />
+                        </assignment-value>
+                        <assignment-value>
+                            <parameter-marker-expression value="2" start-index="66" stop-index="66" />
+                            <literal-expression value="init" start-index="66" stop-index="71" />
+                        </assignment-value>
+                    </value>
+                </values>
+            </table-element>
+            <table-element>
+                <table name="t_order" start-index="74" stop-index="80" literal-start-index="79" literal-stop-index="85"/>
+                <columns start-index="82" stop-index="108" literal-start-index="87" literal-stop-index="113">
+                    <column name="order_id" start-index="83" stop-index="90" literal-start-index="88" literal-stop-index="95"/>
+                    <column name="user_id" start-index="93" stop-index="99" literal-start-index="98" literal-stop-index="104"/>
+                    <column name="status" start-index="102" stop-index="107" literal-start-index="107" literal-stop-index="112"/>
+                </columns>
+                <values>
+                    <value>
+                        <assignment-value>
+                            <parameter-marker-expression value="3" start-index="118" stop-index="118" />
+                            <literal-expression value="2" start-index="123" stop-index="123" />
+                        </assignment-value>
+                        <assignment-value>
+                            <parameter-marker-expression value="4" start-index="121" stop-index="121" />
+                            <literal-expression value="2" start-index="126" stop-index="126" />
+                        </assignment-value>
+                        <assignment-value>
+                            <parameter-marker-expression value="5" start-index="124" stop-index="124" />
+                            <literal-expression value="init" start-index="129" stop-index="134" />
+                        </assignment-value>
+                    </value>
+                </values>
+            </table-element>
+            <table-element>
+                <table name="t_order" start-index="132" stop-index="138" literal-start-index="142" literal-stop-index="148"/>
+                <columns start-index="140" stop-index="166" literal-start-index="150" literal-stop-index="176">
+                    <column name="order_id" start-index="141" stop-index="148" literal-start-index="151" literal-stop-index="158"/>
+                    <column name="user_id" start-index="151" stop-index="157" literal-start-index="161" literal-stop-index="167"/>
+                    <column name="status" start-index="160" stop-index="165" literal-start-index="170" literal-stop-index="175"/>
+                </columns>
+                <values>
+                    <value>
+                        <assignment-value>
+                            <parameter-marker-expression value="6" start-index="176" stop-index="176" />
+                            <literal-expression value="3" start-index="186" stop-index="186" />
+                        </assignment-value>
+                        <assignment-value>
+                            <parameter-marker-expression value="7" start-index="179" stop-index="179" />
+                            <literal-expression value="3" start-index="189" stop-index="189" />
+                        </assignment-value>
+                        <assignment-value>
+                            <parameter-marker-expression value="8" start-index="182" stop-index="182" />
+                            <literal-expression value="init" start-index="192" stop-index="197" />
+                        </assignment-value>
+                    </value>
+                </values>
+            </table-element>
+        </multi-table-element>
+        <select-subquery>
+            <from>
+                <simple-table name="dual" start-index="199" stop-index="202" literal-start-index="214" literal-stop-index="217"/>
+            </from>
+            <projections start-index="192" stop-index="192" literal-start-index="207" literal-stop-index="207">
+                <shorthand-projection start-index="192" stop-index="192" literal-start-index="207" literal-stop-index="207"/>
+            </projections>
+        </select-subquery>
+    </insert>
 
     <insert sql-case-id="insert_with_str_date_add" parameters="1, 1, 1">
         <table name="t_order" start-index="12" stop-index="18" />
@@ -1135,7 +1248,14 @@
             <value>
                 <assignment-value>
                     <parameter-marker-expression value="0" start-index="96" stop-index="96" />
-                    <common-expression text="date_add(now(),interval ? second)" literal-text="date_add(now(),interval 1 second)" start-index="61" stop-index="93" literal-start-index="61" literal-stop-index="93" />
+                    <function function-name="date_add" text="date_add(now(),interval ? second)" literal-text="date_add(now(),interval 1 second)" start-index="61" stop-index="93" literal-start-index="61" literal-stop-index="93">
+                        <parameter>
+                            <function function-name="now" text="now()" start-index="70" stop-index="74" />
+                        </parameter>
+                        <parameter>
+                            <expression-projection literal-text="interval 1 second" text="interval ? second" start-index="76" stop-index="92" />
+                        </parameter>
+                    </function>
                 </assignment-value>
                 <assignment-value>
                     <parameter-marker-expression value="1" start-index="96" stop-index="96" />
@@ -1318,7 +1438,11 @@
             <assignment start-index="136" stop-index="158" literal-start-index="138" literal-stop-index="160">
                 <column name="status" start-index="136" stop-index="141" literal-start-index="138" literal-stop-index="143" />
                 <assignment-value>
-                    <common-expression text="VALUES(status)" start-index="145" stop-index="158" literal-start-index="147" literal-stop-index="160" />
+                    <function function-name="VALUES" text="VALUES(status)" start-index="145" stop-index="158" literal-start-index="147" literal-stop-index="160">
+                        <parameter>
+                            <column name="status" start-index="152" stop-index="157" literal-start-index="154" literal-stop-index="159" />
+                        </parameter>
+                    </function>
                 </assignment-value>
             </assignment>
         </on-duplicate-key-columns>
@@ -1823,5 +1947,101 @@
                 <column-projection name="customer_id" start-index="204" stop-index="214" />
             </projections>
         </select-subquery>
+    </insert>
+
+    <insert sql-case-id="insert_with_rank_column">
+        <table name="sales" start-index="12" stop-index="16" />
+        <columns start-index="18" stop-index="23">
+            <column name="rank" start-index="19" stop-index="22" />
+        </columns>
+        <values>
+            <value>
+                <assignment-value>
+                    <literal-expression value="1" start-index="33" stop-index="33" />
+                </assignment-value>
+            </value>
+        </values>
+    </insert>
+
+    <insert sql-case-id="insert_with_schema">
+        <table name="t_order" start-index="12" stop-index="22">
+            <owner name="db1" start-index="12" stop-index="14" />
+        </table>
+        <columns start-index="23" stop-index="23" />
+        <values>
+            <value>
+                <assignment-value>
+                    <literal-expression value="1" start-index="32" stop-index="32" />
+                </assignment-value>
+                <assignment-value>
+                    <literal-expression value="2" start-index="34" stop-index="34" />
+                </assignment-value>
+                <assignment-value>
+                    <literal-expression value="3" start-index="36" stop-index="36" />
+                </assignment-value>
+            </value>
+        </values>
+    </insert>
+
+    <insert sql-case-id="insert_on_duplicate_key_update_nothing">
+        <table name="t_order" start-index="12" stop-index="18" />
+        <columns start-index="20" stop-index="46">
+            <column name="order_id" start-index="21" stop-index="28" />
+            <column name="user_id" start-index="31" stop-index="37" />
+            <column name="status" start-index="40" stop-index="45" />
+        </columns>
+        <values>
+            <value>
+                <assignment-value>
+                    <literal-expression value="1" start-index="56" stop-index="56" />
+                </assignment-value>
+                <assignment-value>
+                    <literal-expression value="1" start-index="59" stop-index="59" />
+                </assignment-value>
+                <assignment-value>
+                    <literal-expression value="insert" start-index="62" stop-index="69" />
+                </assignment-value>
+            </value>
+        </values>
+        <on-duplicate-key-columns start-index="72" stop-index="102" />
+    </insert>
+
+    <insert sql-case-id="insert_on_duplicate_key_update_multi_column">
+        <table name="t_order" start-index="12" stop-index="18" />
+        <columns start-index="20" stop-index="46">
+            <column name="order_id" start-index="21" stop-index="28" />
+            <column name="user_id" start-index="31" stop-index="37" />
+            <column name="status" start-index="40" stop-index="45" />
+        </columns>
+        <values>
+            <value>
+                <assignment-value>
+                    <parameter-marker-expression value="0" />
+                    <literal-expression value="1" start-index="56" stop-index="56" />
+                </assignment-value>
+                <assignment-value>
+                    <parameter-marker-expression value="1" />
+                    <literal-expression value="1" start-index="59" stop-index="59" />
+                </assignment-value>
+                <assignment-value>
+                    <parameter-marker-expression value="2" />
+                    <literal-expression value="insert" start-index="62" stop-index="69" />
+                </assignment-value>
+            </value>
+        </values>
+        <on-duplicate-key-columns start-index="72" stop-index="133">
+            <assignment start-index="96" stop-index="116">
+                <column name="user_id" start-index="96" stop-index="102" />
+                <assignment-value>
+                    <common-expression literal-text="user_id + 1" start-index="106" stop-index="116" />
+                </assignment-value>
+            </assignment>
+            <assignment start-index="119" stop-index="133">
+                <column name="status" start-index="119" stop-index="124" />
+                <assignment-value>
+                    <literal-expression value="update" start-index="126" stop-index="133" />
+                </assignment-value>
+            </assignment>
+        </on-duplicate-key-columns>
     </insert>
 </sql-parser-test-cases>
