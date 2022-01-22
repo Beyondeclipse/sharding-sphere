@@ -17,45 +17,52 @@
 
 package org.apache.shardingsphere.traffic.executor;
 
-import org.apache.shardingsphere.infra.binder.LogicSQL;
-import org.apache.shardingsphere.infra.config.datasource.DataSourceConfiguration;
+import org.apache.shardingsphere.infra.executor.sql.context.SQLUnit;
+import org.apache.shardingsphere.infra.executor.sql.execute.engine.driver.jdbc.JDBCExecutionUnit;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.List;
 
 /**
  * Traffic executor.
  */
-public interface TrafficExecutor extends AutoCloseable {
+public final class TrafficExecutor implements AutoCloseable {
     
-    /**
-     * Execute query.
-     * 
-     * @param logicSQL logic SQL
-     * @param dataSourceConfig dataSource config
-     * @return result set
-     * @throws SQLException SQL exception
-     */
-    ResultSet executeQuery(LogicSQL logicSQL, DataSourceConfiguration dataSourceConfig) throws SQLException;
-    
-    /**
-     * Execute update.
-     * 
-     * @param logicSQL logic SQL
-     * @param dataSourceConfig dataSource config
-     * @return update count
-     * @throws SQLException SQL exception
-     */
-    int executeUpdate(LogicSQL logicSQL, DataSourceConfiguration dataSourceConfig) throws SQLException;
+    private Statement statement;
     
     /**
      * Execute.
      * 
-     * @param logicSQL logic SQL
-     * @param dataSourceConfig dataSource config
-     * @return whether execute success or not
+     * @param executionUnit execution unit
+     * @param callback traffic executor callback
+     * @param <T> return type
+     * @return execute result
+     * @throws SQLException SQL exception
      */
-    boolean execute(LogicSQL logicSQL, DataSourceConfiguration dataSourceConfig);
+    public <T> T execute(final JDBCExecutionUnit executionUnit, final TrafficExecutorCallback<T> callback) throws SQLException {
+        SQLUnit sqlUnit = executionUnit.getExecutionUnit().getSqlUnit();
+        cacheStatement(sqlUnit.getParameters(), executionUnit.getStorageResource());
+        return callback.execute(statement, sqlUnit.getSql());
+    }
+    
+    private void cacheStatement(final List<Object> parameters, final Statement statement) throws SQLException {
+        this.statement = statement;
+        setParameters(statement, parameters);
+    }
+    
+    private void setParameters(final Statement statement, final List<Object> parameters) throws SQLException {
+        if (!(statement instanceof PreparedStatement)) {
+            return;
+        }
+        int index = 1;
+        for (Object each : parameters) {
+            ((PreparedStatement) statement).setObject(index++, each);
+        }
+    }
     
     /**
      * Get result set.
@@ -63,8 +70,16 @@ public interface TrafficExecutor extends AutoCloseable {
      * @return result set
      * @throws SQLException SQL exception
      */
-    ResultSet getResultSet() throws SQLException;
+    public ResultSet getResultSet() throws SQLException {
+        return statement.getResultSet();
+    }
     
     @Override
-    void close() throws SQLException;
+    public void close() throws SQLException {
+        if (null != statement) {
+            Connection connection = statement.getConnection();
+            statement.close();
+            connection.close();
+        }
+    }
 }

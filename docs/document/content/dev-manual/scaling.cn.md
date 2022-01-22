@@ -17,16 +17,6 @@ chapter = true
 | PostgreSQLScalingEntry | 基于 PostgreSQL 的弹性伸缩入口 |
 | OpenGaussScalingEntry  | 基于 openGauss 的弹性伸缩入口  |
 
-## JobRateLimitAlgorithm
-
-| *SPI 名称*                                   | *详细说明*                                   |
-| ------------------------------------------- | ------------------------------------------- |
-| JobRateLimitAlgorithm                       | 任务限流算法                                  |
-
-| *已知实现类*                                  | *详细说明*                                   |
-| ------------------------------------------- | ------------------------------------------- |
-| SourceJobRateLimitAlgorithm                 | 源端限流算法                                  |
-
 ## JobCompletionDetectAlgorithm
 
 | *SPI 名称*                                   | *详细说明*                                   |
@@ -37,33 +27,24 @@ chapter = true
 | ------------------------------------------- | ------------------------------------------- |
 | IdleRuleAlteredJobCompletionDetectAlgorithm | 基于增量迁移任务空闲时长的检测算法                |
 
-## RowBasedJobLockAlgorithm
-
-| *SPI 名称*                                   | *详细说明*                                   |
-| ------------------------------------------- | ------------------------------------------- |
-| RowBasedJobLockAlgorithm                    | 用于保护记录的任务锁算法                        |
-
-| *已知实现类*                                  | *详细说明*                                   |
-| ------------------------------------------- | ------------------------------------------- |
-| DefaultSourceWritingStopAlgorithm           | 源端停写算法默认实现                           |
-
 ## DataConsistencyCheckAlgorithm
 
 | *SPI 名称*                                   | *详细说明*                                   |
 | ------------------------------------------- | ------------------------------------------- |
 | DataConsistencyCheckAlgorithm               | 数据一致性校验算法                             |
 
-| *已知实现类*                                  | *详细说明*                                   |
-| ------------------------------------------- | ------------------------------------------- |
-| DataMatchDataConsistencyCheckAlgorithm      | 基于数据匹配的一致性校验算法                    |
-| CRC32MatchDataConsistencyCheckAlgorithm     | 基于数据CRC32匹配的一致性校验算法               |
+| *已知实现类*                                  | *详细说明*                                            |
+| ------------------------------------------- | ---------------------------------------------------- |
+| DataMatchDataConsistencyCheckAlgorithm      | 基于数据匹配的一致性校验算法。类型名：DATA_MATCH。          |
+| CRC32MatchDataConsistencyCheckAlgorithm     | 基于数据CRC32匹配的一致性校验算法。类型名：CRC32_MATCH。    |
 
-## RuleBasedJobLockAlgorithm
+## SingleTableDataCalculator
 
-| *SPI 名称*                                   | *详细说明*                                   |
-| ------------------------------------------- | ------------------------------------------- |
-| RuleBasedJobLockAlgorithm                   | 用于保护规则的任务锁算法                        |
+| *SPI 名称*                                   | *详细说明*                                            |
+| ------------------------------------------- | ---------------------------------------------------- |
+| SingleTableDataCalculator                   | 给数据一致性校验使用的单表数据计算算法                     |
 
-| *已知实现类*                                  | *详细说明*                                   |
-| ------------------------------------------- | ------------------------------------------- |
-| DefaultMetadataCheckoutLockAlgorithm        | 切换元数据锁算法默认实现                        |
+| *已知实现类*                                  | *详细说明*                                                              |
+| ------------------------------------------- | ---------------------------------------------------------------------- |
+| DataMatchSingleTableDataCalculator          | 给 DATA_MATCH 数据一致性校验算法使用的单表数据计算算法。适用于所有数据库。        |
+| CRC32MatchMySQLSingleTableDataCalculator    | 给 CRC32_MATCH 数据一致性校验算法使用的单表数据计算算法。适用于MySQL。          |

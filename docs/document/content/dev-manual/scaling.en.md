@@ -17,16 +17,6 @@ chapter = true
 | PostgreSQLScalingEntry | PostgreSQL entry of scaling |
 | OpenGaussScalingEntry  | openGauss entry of scaling |
 
-## JobRateLimitAlgorithm
-
-| *SPI Name*                                   | *Description*                              |
-| ------------------------------------------- | ------------------------------------------- |
-| JobRateLimitAlgorithm                       | job rate limit algorithm                    |
-
-| *Implementation Class*                      | *Description*                               |
-| ------------------------------------------- | ------------------------------------------- |
-| SourceJobRateLimitAlgorithm                 | rate limit algorithm for source side        |
-
 ## JobCompletionDetectAlgorithm
 
 | *SPI Name*                                  | *Description*                               |
@@ -37,33 +27,24 @@ chapter = true
 | ------------------------------------------- | ------------------------------------------- |
 | IdleRuleAlteredJobCompletionDetectAlgorithm | Incremental task idle time based algorithm  |
 
-## RowBasedJobLockAlgorithm
-
-| *SPI Name*                                  | *Description*                               |
-| ------------------------------------------- | ------------------------------------------- |
-| RowBasedJobLockAlgorithm                    | Job lock algorithm for protecting row       |
-
-| *Implementation Class*                      | *Description*                               |
-| ------------------------------------------- | ------------------------------------------- |
-| DefaultSourceWritingStopAlgorithm           | Default lock implementation for stopping source writing |
-
 ## DataConsistencyCheckAlgorithm
 
 | *SPI Name*                                  | *Description*                               |
 | ------------------------------------------- | ------------------------------------------- |
 | DataConsistencyCheckAlgorithm               | Data consistency check algorithm on source and target database cluster |
 
-| *Implementation Class*                      | *Description*                               |
-| ------------------------------------------- | ------------------------------------------- |
-| DataMatchDataConsistencyCheckAlgorithm      | Records content match implementation        |
-| CRC32MatchDataConsistencyCheckAlgorithm     | Records CRC32 match implementation          |
+| *Implementation Class*                      | *Description*                                                          |
+| ------------------------------------------- | ---------------------------------------------------------------------- |
+| DataMatchDataConsistencyCheckAlgorithm      | Records content match implementation. Type name: DATA_MATCH.           |
+| CRC32MatchDataConsistencyCheckAlgorithm     | Records CRC32 match implementation. Type name: CRC32_MATCH.            |
 
-## RuleBasedJobLockAlgorithm
+## SingleTableDataCalculator
 
-| *SPI Name*                                  | *Description*                               |
-| ------------------------------------------- | ------------------------------------------- |
-| RuleBasedJobLockAlgorithm                   | Job lock algorithm for protecting rule      |
+| *SPI Name*                                  | *Description*                                                          |
+| ------------------------------------------- | ---------------------------------------------------------------------- |
+| SingleTableDataCalculator                   | Single table data calculator for data consistency check                |
 
-| *Implementation Class*                      | *Description*                               |
-| ------------------------------------------- | ------------------------------------------- |
-| DefaultMetadataCheckoutLockAlgorithm        | Default lock implementation for metadata checkout |
+| *Implementation Class*                      | *Description*                                                          |
+| ------------------------------------------- | ---------------------------------------------------------------------- |
+| DataMatchSingleTableDataCalculator          | Single table data calculator for DATA_MATCH data consistency check     |
+| CRC32MatchMySQLSingleTableDataCalculator    | Single table data calculator for CRC32_MATCH data consistency check    |

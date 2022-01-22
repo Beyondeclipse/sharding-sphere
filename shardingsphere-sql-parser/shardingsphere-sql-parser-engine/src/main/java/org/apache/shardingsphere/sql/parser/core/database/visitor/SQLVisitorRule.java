@@ -30,6 +30,8 @@ public enum SQLVisitorRule {
     
     SELECT("Select", SQLStatementType.DML),
     
+    TABLE("Table", SQLStatementType.DML),
+    
     INSERT("Insert", SQLStatementType.DML),
     
     UPDATE("Update", SQLStatementType.DML),
@@ -44,7 +46,19 @@ public enum SQLVisitorRule {
     
     CREATE_TABLE("CreateTable", SQLStatementType.DDL),
     
+    RENAME_TABLE("RenameTable", SQLStatementType.DDL),
+    
     ALTER_TABLE("AlterTable", SQLStatementType.DDL),
+    
+    ALTER_AGGREGATE("AlterAggregate", SQLStatementType.DDL),
+    
+    ALTER_COLLATION("AlterCollation", SQLStatementType.DDL),
+    
+    ALTER_DEFAULT_PRIVILEGES("AlterDefaultPrivileges", SQLStatementType.DDL),
+    
+    ALTER_FOREIGN_DATA_WRAPPER("AlterForeignDataWrapper", SQLStatementType.DDL),
+    
+    ALTER_FOREIGN_TABLE("AlterForeignTable", SQLStatementType.DDL),
     
     DROP_TABLE("DropTable", SQLStatementType.DDL),
     
@@ -77,6 +91,12 @@ public enum SQLVisitorRule {
     ALTER_DATABASE("AlterDatabase", SQLStatementType.DDL),
     
     DROP_DATABASE("DropDatabase", SQLStatementType.DDL),
+    
+    CREATE_DIMENSION("CreateDimension", SQLStatementType.DDL),
+
+    ALTER_DIMENSION("AlterDimension", SQLStatementType.DDL),
+
+    DROP_DIMENSION("DropDimension", SQLStatementType.DDL),
     
     CREATE_EVENT("CreateEvent", SQLStatementType.DDL),
     
@@ -154,6 +174,12 @@ public enum SQLVisitorRule {
 
     RENAME("Rename", SQLStatementType.DDL),
     
+    CREATE_EXTENSION("CreateExtension", SQLStatementType.DDL),
+    
+    ALTER_EXTENSION("AlterExtension", SQLStatementType.DDL),
+    
+    DROP_EXTENSION("DropExtension", SQLStatementType.DDL),
+    
     SET_CONSTRAINTS("SetConstraints", SQLStatementType.TCL),
     
     SET_TRANSACTION("SetTransaction", SQLStatementType.TCL),
@@ -229,6 +255,8 @@ public enum SQLVisitorRule {
     USE("Use", SQLStatementType.DAL),
     
     DESC("Desc", SQLStatementType.DAL),
+
+    HELP("Help", SQLStatementType.DAL),
     
     EXPLAIN("Explain", SQLStatementType.DAL),
     
@@ -376,7 +404,17 @@ public enum SQLVisitorRule {
     
     DROP_CONVERSION("DropConversion", SQLStatementType.DDL),
     
-    CREATE_TEXT_SEARCH("CreateTextSearch", SQLStatementType.DDL);
+    ALTER_DOMAIN("AlterDomain", SQLStatementType.DDL),
+    
+    ALTER_CONVERSION("AlterConversion", SQLStatementType.DDL),
+    
+    CREATE_TEXT_SEARCH("CreateTextSearch", SQLStatementType.DDL),
+    
+    ALTER_TEXT_SEARCH_DICTIONARY("AlterTextSearchDictionary", SQLStatementType.DDL),
+    
+    ALTER_TEXT_SEARCH_TEMPLATE("AlterTextSearchTemplate", SQLStatementType.DDL),
+    
+    ALTER_TEXT_SEARCH_PARSER("AlterTextSearchParser", SQLStatementType.DDL);
 
     private final String name;
     

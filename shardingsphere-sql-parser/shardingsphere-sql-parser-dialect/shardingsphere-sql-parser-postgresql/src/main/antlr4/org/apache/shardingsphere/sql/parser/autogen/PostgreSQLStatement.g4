@@ -53,8 +53,14 @@ execute
     | set
     | resetParameter
     | call
+    | alterAggregate
+    | alterCollation
     | alterFunction
     | alterDatabase
+    | alterDomain
+    | alterDefaultPrivileges
+    | alterForeignDataWrapper
+    | alterForeignTable
     | alterProcedure
     | alterServer
     | alterSequence
@@ -95,6 +101,13 @@ execute
     | alterLanguage
     | dropLanguage
     | createConversion
+    | alterConversion
     | dropConversion
+    | alterTextSearchDictionary
+    | alterTextSearchTemplate
+    | alterTextSearchParser
+    | createExtension
+    | alterExtension
+    | dropExtension
     ) SEMI_?
     ;

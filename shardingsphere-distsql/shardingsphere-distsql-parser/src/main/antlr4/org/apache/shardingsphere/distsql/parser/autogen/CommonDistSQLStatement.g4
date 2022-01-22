@@ -31,15 +31,19 @@ execute
     | enableInstance
     | disableInstance
     | showInstance
+    | showInstanceMode
     | showSingleTable
     | showSingleTableRules
     | createDefaultSingleTableRule
     | alterDefaultSingleTableRule
     | dropDefaultSingleTableRule
     | refreshTableMetadata
+    | showTableMetadata
     | showSQLParserRule
     | alterSQLParserRule
     | showAuthorityRule
     | showTransactionRule
+    | alterTransactionRule
+    | countSchemaRules
     ) SEMI?
     ;

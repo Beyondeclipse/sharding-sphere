@@ -650,12 +650,12 @@ userIdentifierOrText
     : textOrIdentifier (AT_ textOrIdentifier)?
     ;
     
-userName
+username
     : userIdentifierOrText | CURRENT_USER (LP_ RP_)?
     ;
     
 eventName
-    : identifier (DOT_ identifier)?
+    : (owner DOT_)? identifier
     ;
     
 serverName
@@ -667,13 +667,15 @@ wrapperName
     ;
     
 functionName
-    : identifier
-    | (owner DOT_)? identifier
+    : (owner DOT_)? identifier
     ;
-    
+
+procedureName
+    : (owner DOT_)? identifier
+    ;
+
 viewName
-    : identifier
-    | (owner DOT_)? identifier
+    : (owner DOT_)? identifier
     ;
     
 owner
@@ -720,7 +722,7 @@ pluginName
     : identifier
     ;
     
-hostName
+hostname
     : string_
     ;
     
@@ -729,7 +731,7 @@ port
     ;
     
 cloneInstance
-    : userName AT_ hostName COLON_ port
+    : username AT_ hostname COLON_ port
     ;
     
 cloneDir
@@ -769,7 +771,7 @@ tableOrTables
     ;
     
 userOrRole
-    : userName | roleName
+    : username | roleName
     ;
     
 partitionName
@@ -862,7 +864,7 @@ simpleExpr
     | parameterMarker
     | literals
     | columnRef
-    | simpleExpr COLLATE textOrIdentifier
+    | simpleExpr collateClause
     | variable
     | simpleExpr OR_ simpleExpr
     | (PLUS_ | MINUS_ | TILDE_ | notOperator | BINARY) simpleExpr
@@ -888,7 +890,7 @@ functionCall
     ;
     
 aggregationFunction
-    : aggregationFunctionName LP_ distinct? (expr (COMMA_ expr)* | ASTERISK_)? RP_ overClause?
+    : aggregationFunctionName LP_ distinct? (expr (COMMA_ expr)* | ASTERISK_)? collateClause? RP_ overClause?
     ;
     
 aggregationFunctionName
@@ -1238,7 +1240,7 @@ characterSet
     ;
     
 collateClause
-    : COLLATE collationName
+    : COLLATE (collationName | parameterMarker)
     ;
     
 fieldOrVarSpec

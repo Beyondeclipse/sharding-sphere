@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shardingsphere.data.pipeline.api.datasource.config.PipelineDataSourceConfiguration;
 import org.apache.shardingsphere.data.pipeline.api.datasource.config.PipelineDataSourceConfigurationFactory;
 import org.apache.shardingsphere.data.pipeline.spi.rulealtered.RuleAlteredJobConfigurationPreparer;
-import org.apache.shardingsphere.spi.ShardingSphereServiceLoader;
 import org.apache.shardingsphere.spi.required.RequiredSPIRegistry;
 
 import java.util.Collection;
@@ -42,10 +41,6 @@ import java.util.concurrent.ThreadLocalRandom;
 @Slf4j
 // TODO share for totally new scenario
 public final class JobConfiguration {
-    
-    static {
-        ShardingSphereServiceLoader.register(RuleAlteredJobConfigurationPreparer.class);
-    }
     
     private WorkflowConfiguration workflowConfig;
     
@@ -65,13 +60,13 @@ public final class JobConfiguration {
         PipelineConfiguration pipelineConfig = getPipelineConfig();
         HandleConfiguration handleConfig = getHandleConfig();
         if (null == handleConfig || null == handleConfig.getJobShardingDataNodes()) {
-            // TODO singleton
             RuleAlteredJobConfigurationPreparer preparer = RequiredSPIRegistry.getRegisteredService(RuleAlteredJobConfigurationPreparer.class);
             handleConfig = preparer.createHandleConfiguration(pipelineConfig);
             this.handleConfig = handleConfig;
         }
         if (null == handleConfig.getJobId()) {
-            handleConfig.setJobId(System.nanoTime() - ThreadLocalRandom.current().nextLong(100_0000));
+            // TODO use uuid; update pattern
+            handleConfig.setJobId(String.valueOf(System.nanoTime() - ThreadLocalRandom.current().nextLong(100_0000)));
         }
         if (Strings.isNullOrEmpty(handleConfig.getSourceDatabaseType())) {
             PipelineDataSourceConfiguration sourceDataSourceConfig = PipelineDataSourceConfigurationFactory.newInstance(

@@ -19,7 +19,7 @@ package org.apache.shardingsphere.data.pipeline.api.datasource.config;
 
 import org.apache.shardingsphere.infra.database.type.DatabaseType;
 
-import java.util.Map;
+import java.util.Properties;
 
 /**
  * Pipeline data source configuration.
@@ -48,11 +48,11 @@ public interface PipelineDataSourceConfiguration {
     Object getDataSourceConfiguration();
     
     /**
-     * Append JDBC parameters.
+     * Append JDBC queryProps.
      *
-     * @param parameters JDBC parameters
+     * @param queryProps JDBC query properties
      */
-    void appendJDBCParameters(Map<String, String> parameters);
+    void appendJDBCQueryProperties(Properties queryProps);
     
     /**
      * Get database type.

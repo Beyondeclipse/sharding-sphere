@@ -20,39 +20,59 @@ package org.apache.shardingsphere.infra.yaml.config.swapper.rulealtered;
 import org.apache.shardingsphere.infra.config.rulealtered.OnRuleAlteredActionConfiguration;
 import org.apache.shardingsphere.infra.yaml.config.pojo.algorithm.YamlShardingSphereAlgorithmConfiguration;
 import org.apache.shardingsphere.infra.yaml.config.pojo.rulealtered.YamlOnRuleAlteredActionConfiguration;
+import org.apache.shardingsphere.infra.yaml.config.pojo.rulealtered.YamlOnRuleAlteredActionConfiguration.YamlInputConfiguration;
+import org.apache.shardingsphere.infra.yaml.config.pojo.rulealtered.YamlOnRuleAlteredActionConfiguration.YamlOutputConfiguration;
 import org.apache.shardingsphere.infra.yaml.engine.YamlEngine;
 import org.junit.Test;
 
 import java.util.Properties;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
 public final class OnRuleAlteredActionConfigurationYamlSwapperTest {
     
+    private static final OnRuleAlteredActionConfigurationYamlSwapper CONFIG_YAML_SWAPPER = new OnRuleAlteredActionConfigurationYamlSwapper();
+    
     @Test
     public void assertSwap() {
         YamlOnRuleAlteredActionConfiguration yamlConfig = new YamlOnRuleAlteredActionConfiguration();
-        yamlConfig.setBlockQueueSize(1000);
-        yamlConfig.setWorkerThread(20);
-        yamlConfig.setReadBatchSize(100);
         Properties rateLimiterProps = new Properties();
         rateLimiterProps.setProperty("batch-size", "1000");
         rateLimiterProps.setProperty("qps", "50");
-        yamlConfig.setRateLimiter(new YamlShardingSphereAlgorithmConfiguration("SOURCE", rateLimiterProps));
+        YamlInputConfiguration yamlInputConfig = new YamlInputConfiguration();
+        yamlConfig.setInput(yamlInputConfig);
+        yamlInputConfig.setWorkerThread(40);
+        yamlInputConfig.setBatchSize(1000);
+        yamlInputConfig.setRateLimiter(new YamlShardingSphereAlgorithmConfiguration("INPUT", rateLimiterProps));
+        YamlOutputConfiguration yamlOutputConfig = new YamlOutputConfiguration();
+        yamlOutputConfig.setWorkerThread(40);
+        yamlOutputConfig.setBatchSize(1000);
+        yamlOutputConfig.setRateLimiter(new YamlShardingSphereAlgorithmConfiguration("OUTPUT", rateLimiterProps));
+        yamlConfig.setOutput(yamlOutputConfig);
+        Properties streamChannelProps = new Properties();
+        streamChannelProps.setProperty("block-queue-size", "10000");
+        yamlConfig.setStreamChannel(new YamlShardingSphereAlgorithmConfiguration("MEMORY", streamChannelProps));
         Properties completionDetectorProps = new Properties();
         completionDetectorProps.setProperty("incremental-task-idle-minute-threshold", "30");
         yamlConfig.setCompletionDetector(new YamlShardingSphereAlgorithmConfiguration("IDLE", completionDetectorProps));
-        Properties sourceWritingStopperProps = new Properties();
-        yamlConfig.setSourceWritingStopper(new YamlShardingSphereAlgorithmConfiguration("DEFAULT", sourceWritingStopperProps));
         Properties dataConsistencyCheckerProps = new Properties();
         dataConsistencyCheckerProps.setProperty("chunk-size", "1000");
         yamlConfig.setDataConsistencyChecker(new YamlShardingSphereAlgorithmConfiguration("DATA_MATCH", dataConsistencyCheckerProps));
-        Properties checkoutLockerProps = new Properties();
-        yamlConfig.setCheckoutLocker(new YamlShardingSphereAlgorithmConfiguration("DEFAULT", checkoutLockerProps));
         OnRuleAlteredActionConfigurationYamlSwapper yamlSwapper = new OnRuleAlteredActionConfigurationYamlSwapper();
         OnRuleAlteredActionConfiguration actualConfig = yamlSwapper.swapToObject(yamlConfig);
         YamlOnRuleAlteredActionConfiguration actualYamlConfig = yamlSwapper.swapToYamlConfiguration(actualConfig);
         assertThat(YamlEngine.marshal(actualYamlConfig), is(YamlEngine.marshal(yamlConfig)));
+    }
+    
+    @Test
+    public void assertYamlConfigNull() {
+        assertNull(CONFIG_YAML_SWAPPER.swapToYamlConfiguration(null));
+    }
+    
+    @Test
+    public void assertConfigNull() {
+        assertNull(CONFIG_YAML_SWAPPER.swapToObject(null));
     }
 }

@@ -17,11 +17,12 @@
 
 package org.apache.shardingsphere.proxy.backend.text.distsql.ral.common.show.executor;
 
+import org.apache.shardingsphere.infra.instance.ComputeNodeInstance;
+import org.apache.shardingsphere.infra.instance.definition.InstanceId;
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
 import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.status.compute.ComputeNodeStatus;
-import org.apache.shardingsphere.mode.manager.cluster.coordinator.registry.status.compute.node.ComputeStatusNode;
-import org.apache.shardingsphere.infra.instance.utils.IpUtils;
 import org.apache.shardingsphere.mode.metadata.persist.MetaDataPersistService;
+import org.apache.shardingsphere.mode.repository.standalone.StandalonePersistRepository;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.response.header.query.impl.QueryHeader;
 import org.apache.shardingsphere.sharding.merge.dal.common.MultipleLocalDataMergedResult;
@@ -68,30 +69,24 @@ public final class ShowInstanceExecutor extends AbstractShowExecutor {
     @Override
     protected MergedResult createMergedResult() {
         MetaDataPersistService persistService = ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaDataPersistService().orElse(null);
-        if (null == persistService || null == persistService.getRepository()) {
+        if (null == persistService || null == persistService.getRepository() || persistService.getRepository() instanceof StandalonePersistRepository) {
             return new MultipleLocalDataMergedResult(buildInstanceRows());
         }
-        Collection<List<Object>> rows = buildInstanceRows(persistService, ENABLE);
-        Collection<List<Object>> disableInstanceIds = buildInstanceRows(persistService, DISABLE);
-        if (!disableInstanceIds.isEmpty()) {
-            rows.addAll(disableInstanceIds);
-        }
-        return new MultipleLocalDataMergedResult(rows);
+        return new MultipleLocalDataMergedResult(buildInstanceRows(persistService));
     }
     
     private Collection<List<Object>> buildInstanceRows() {
         List<List<Object>> rows = new LinkedList<>();
-        // TODO port is not saved in metadata, add port after saving
-        String instanceId = String.join(DELIMITER, IpUtils.getIp(), " ");
-        rows.add(buildRow(instanceId, ENABLE));
+        InstanceId instanceId = ProxyContext.getInstance().getContextManager().getInstanceContext().getInstance().getInstanceDefinition().getInstanceId();
+        rows.add(buildRow(instanceId.getId(), ENABLE));
         return rows;
     }
     
-    private Collection<List<Object>> buildInstanceRows(final MetaDataPersistService persistService, final String status) {
-        String statusPath = ComputeStatusNode.getStatusPath(status.equals(ENABLE) ? ComputeNodeStatus.ONLINE : ComputeNodeStatus.CIRCUIT_BREAKER);
-        List<String> instanceIds = persistService.getRepository().getChildrenKeys(statusPath);
-        if (!instanceIds.isEmpty()) {
-            return instanceIds.stream().filter(Objects::nonNull).map(each -> buildRow(each, status)).collect(Collectors.toCollection(LinkedList::new));
+    private Collection<List<Object>> buildInstanceRows(final MetaDataPersistService persistService) {
+        Collection<ComputeNodeInstance> instances = persistService.getComputeNodePersistService().loadAllComputeNodeInstances();
+        if (!instances.isEmpty()) {
+            return instances.stream().filter(Objects::nonNull).map(each -> buildRow(each.getInstanceDefinition().getInstanceId().getId(), getStatus(each.getStatus())))
+                    .collect(Collectors.toCollection(LinkedList::new));
         }
         return Collections.emptyList();
     }
@@ -101,5 +96,9 @@ public final class ShowInstanceExecutor extends AbstractShowExecutor {
         String host = splitInstanceId[0];
         String port = splitInstanceId.length < 2 ? "" : splitInstanceId[1];
         return Stream.of(instanceId, host, port, status).map(each -> (Object) each).collect(Collectors.toCollection(LinkedList::new));
+    }
+    
+    private String getStatus(final Collection<String> computeNodeStatus) {
+        return computeNodeStatus.isEmpty() || !computeNodeStatus.contains(ComputeNodeStatus.CIRCUIT_BREAK.name()) ? ENABLE : DISABLE;
     }
 }

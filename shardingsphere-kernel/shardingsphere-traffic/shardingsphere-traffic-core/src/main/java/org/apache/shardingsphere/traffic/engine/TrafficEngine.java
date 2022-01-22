@@ -19,14 +19,18 @@ package org.apache.shardingsphere.traffic.engine;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.infra.binder.LogicSQL;
-import org.apache.shardingsphere.infra.config.datasource.DataSourceConfiguration;
+import org.apache.shardingsphere.infra.executor.sql.context.ExecutionUnit;
+import org.apache.shardingsphere.infra.executor.sql.context.SQLUnit;
+import org.apache.shardingsphere.infra.instance.ComputeNodeInstance;
+import org.apache.shardingsphere.infra.instance.definition.InstanceType;
+import org.apache.shardingsphere.mode.metadata.MetaDataContexts;
 import org.apache.shardingsphere.traffic.context.TrafficContext;
 import org.apache.shardingsphere.traffic.rule.TrafficRule;
 import org.apache.shardingsphere.traffic.rule.TrafficStrategyRule;
 import org.apache.shardingsphere.traffic.spi.TrafficLoadBalanceAlgorithm;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +41,8 @@ import java.util.Optional;
 public final class TrafficEngine {
     
     private final TrafficRule trafficRule;
+    
+    private final MetaDataContexts metaDataContexts;
     
     /**
      * Dispatch.
@@ -50,14 +56,27 @@ public final class TrafficEngine {
         if (!strategyRule.isPresent()) {
             return result;
         }
-        List<DataSourceConfiguration> dataSourceConfigs = getDataSourceConfigsByLabels(strategyRule.get().getLabels());
-        TrafficLoadBalanceAlgorithm loadBalancer = trafficRule.findLoadBalancer(strategyRule.get().getLoadBalancerName());
-        result.setDataSourceConfig(loadBalancer.getDataSourceConfig(dataSourceConfigs));
+        List<String> instanceIds = getInstanceIdsByLabels(strategyRule.get().getLabels());
+        if (!instanceIds.isEmpty()) {
+            TrafficLoadBalanceAlgorithm loadBalancer = trafficRule.findLoadBalancer(strategyRule.get().getLoadBalancerName());
+            String instanceId = loadBalancer.getInstanceId(strategyRule.get().getName(), instanceIds);
+            result.getExecutionUnits().add(createExecutionUnit(logicSQL, instanceId));
+        }
         return result;
     }
     
-    private List<DataSourceConfiguration> getDataSourceConfigsByLabels(final Collection<String> labels) {
-        // TODO implements this logic when provide mode api to get dataSource configs by labels
-        return Collections.emptyList();
+    private ExecutionUnit createExecutionUnit(final LogicSQL logicSQL, final String instanceId) {
+        return new ExecutionUnit(instanceId, new SQLUnit(logicSQL.getSql(), logicSQL.getParameters()));
+    }
+    
+    private List<String> getInstanceIdsByLabels(final Collection<String> labels) {
+        List<String> result = new ArrayList<>();
+        if (metaDataContexts.getMetaDataPersistService().isPresent()) {
+            Collection<ComputeNodeInstance> instances = metaDataContexts.getMetaDataPersistService().get().getComputeNodePersistService().loadComputeNodeInstances(InstanceType.PROXY, labels);
+            for (ComputeNodeInstance each : instances) {
+                result.add(each.getInstanceDefinition().getInstanceId().getId());
+            }
+        }
+        return result;
     }
 }
