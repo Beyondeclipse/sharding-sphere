@@ -1,0 +1,547 @@
+# ShardingSphere 架构文档 AI 索引
+# 版本: 1.0
+# 更新时间: 2026-02-13
+# 说明: 本索引为AI系统和人类读者提供快速定位能力
+
+---
+metadata:
+  project: "Apache ShardingSphere"
+  document_type: "architecture"
+  version: "1.0"
+  last_updated: "2026-02-13"
+  maintainers: ["AI System", "Architecture Team"]
+
+# ============================================
+# 快速导航索引 (Quick Navigation Index)
+# ============================================
+
+quick_links:
+  # 新手入门
+  getting_started:
+    - title: "架构总览"
+      path: "overview/proposal.md"
+      description: "了解ShardingSphere的整体架构和设计理念"
+      tags: ["#overview", "#getting-started"]
+      time_to_read: "15分钟"
+
+    - title: "核心设计原则"
+      path: "overview/design-principles.md"
+      description: "SOLID、DRY、YAGNI等设计原则的应用"
+      tags: ["#principles", "#design"]
+      time_to_read: "10分钟"
+
+  # 核心概念
+  core_concepts:
+    - title: "Database Plus理念"
+      path: "overview/proposal.md#database-plus-理念"
+      description: "三大核心支柱：Connect、Enhance、Pluggable"
+      tags: ["#core", "#philosophy"]
+
+    - title: "数据流架构"
+      path: "reference/data-flow.md"
+      description: "SQL处理的5阶段流水线"
+      tags: ["#dataflow", "#pipeline"]
+
+# ============================================
+# 代码路径映射 (Code Path Mapping)
+# AI系统可通过代码路径直接定位文档
+# ============================================
+
+code_path_mappings:
+  # 基础设施层 (Infrastructure Layer)
+  "infra/parser/":
+    doc: "modules/infra/parser.md"
+    description: "SQL解析器，将SQL文本转换为AST"
+    key_classes: ["SQLParserEngine", "SQLStatement", "Lexer"]
+
+  "infra/route/":
+    doc: "modules/infra/route.md"
+    description: "路由引擎基础设施，路由策略和算法"
+    key_classes: ["RouteEngine", "RouteResult", "RouteContext"]
+
+  "infra/rewrite/":
+    doc: "modules/infra/rewrite.md"
+    description: "SQL重写基础设施，Token和Segment重写"
+    key_classes: ["SQLRewriteContext", "TokenRewriter", "SegmentRewriter"]
+
+  "infra/executor/":
+    doc: "modules/infra/executor.md"
+    description: "执行引擎基础设施，并行和串行执行"
+    key_classes: ["ExecuteEngine", "ExecutionContext", "ExecuteResult"]
+
+  "infra/merge/":
+    doc: "modules/infra/merge.md"
+    description: "结果合并引擎，流式和内存合并"
+    key_classes: ["MergeEngine", "MergedResult", "MergeUnit"]
+
+  "infra/spi/":
+    doc: "modules/infra/spi.md"
+    description: "SPI加载机制，扩展点管理"
+    key_classes: ["TypedSPILoader", "DatabaseTypedSPILoader"]
+
+  "infra/expr/":
+    doc: "modules/infra/expr.md"
+    description: "表达式引擎，SQL表达式求值"
+    key_classes: ["ExpressionEngine"]
+
+  # 核心内核层 (Kernel Layer)
+  "kernel/metadata/":
+    doc: "modules/kernel/metadata.md"
+    description: "元数据管理，表结构、规则、数据源元数据"
+    key_classes: ["ShardingSphereMetaData", "RuleMetaData", "TableMetaData"]
+
+  "kernel/transaction/":
+    doc: "modules/kernel/transaction.md"
+    description: "事务管理，分布式事务和本地事务"
+    key_classes: ["TransactionManager", "TransactionContext"]
+
+  "kernel/session/":
+    doc: "modules/kernel/session.md"
+    description: "会话管理，连接状态和上下文"
+    key_classes: ["SessionManager", "Session"]
+
+  "kernel/authority/":
+    doc: "modules/kernel/authority.md"
+    description: "权限管理，用户认证和授权"
+    key_classes: ["AuthorityManager"]
+
+  # 特性功能层 (Feature Layer)
+  "features/sharding/":
+    doc: "modules/features/sharding.md"
+    description: "数据分片，分库分表策略和算法"
+    key_classes: ["ShardingRule", "ShardingAlgorithm", "ShardingValue"]
+
+  "features/encrypt/":
+    doc: "modules/features/encrypt.md"
+    description: "数据加密，列级加密和密钥管理"
+    key_classes: ["EncryptRule", "Encryptor", "EncryptColumn"]
+
+  "features/readwrite-splitting/":
+    doc: "modules/features/readwrite-splitting.md"
+    description: "读写分离，主从路由和负载均衡"
+    key_classes: ["ReadwriteSplittingRule", "LoadBalanceAlgorithm"]
+
+  "features/mask/":
+    doc: "modules/features/mask.md"
+    description: "数据脱敏，隐私保护"
+    key_classes: ["MaskRule", "MaskAlgorithm"]
+
+  "features/shadow/":
+    doc: "modules/features/shadow.md"
+    description: "影子库，测试环境隔离"
+    key_classes: ["ShadowRule"]
+
+  "features/broadcast/":
+    doc: "modules/features/broadcast.md"
+    description: "广播表，全量同步"
+    key_classes: ["BroadcastTableRule"]
+
+  # 应用集成层 (Integration Layer)
+  "jdbc/":
+    doc: "modules/integration/jdbc.md"
+    description: "JDBC驱动，轻量级Java框架"
+    key_classes: ["ShardingSphereDataSource", "ShardingSphereConnection"]
+
+  "proxy/":
+    doc: "modules/integration/proxy.md"
+    description: "Proxy服务器，独立部署的数据库代理"
+    key_classes: ["ShardingSphereProxy", "ProxyContext"]
+
+  "shardingsphere-distsql/":
+    doc: "modules/integration/distsql.md"
+    description: "DistSQL，分布式SQL控制台"
+    key_classes: ["DistSQLExecutor"]
+
+# ============================================
+# 类名索引 (Class Name Index)
+# AI系统可通过类名快速定位相关文档
+# ============================================
+
+class_index:
+  # 路由相关
+  "RouteEngine":
+    doc: "modules/infra/route.md"
+    description: "路由引擎接口"
+    package: "infra.route"
+    usage: "SQL路由核心接口，负责将SQL路由到目标数据源"
+    example: "RouteEngine routeEngine = new StandardRouteEngine(); RouteResult result = routeEngine.route(context);"
+
+  "RouteResult":
+    doc: "modules/infra/route.md"
+    description: "路由结果"
+    package: "infra.route"
+
+  # 分片相关
+  "ShardingRule":
+    doc: "modules/features/sharding.md"
+    description: "分片规则"
+    package: "features.sharding.api"
+    usage: "定义分片策略和算法的核心接口"
+    example: "ShardingRule rule = new ShardingRuleConfigurationBuilder().addTableRule(...).build();"
+
+  "ShardingAlgorithm":
+    doc: "modules/features/sharding.md"
+    description: "分片算法接口"
+    package: "features.sharding.api.sharding"
+
+  # 加密相关
+  "EncryptRule":
+    doc: "modules/features/encrypt.md"
+    description: "加密规则"
+    package: "features.encrypt.api"
+
+  "Encryptor":
+    doc: "modules/features/encrypt.md"
+    description: "加密算法接口"
+    package: "features.encrypt.api"
+
+  # 合并相关
+  "MergeEngine":
+    doc: "modules/infra/merge.md"
+    description: "合并引擎接口"
+    package: "infra.merge"
+
+  "MergedResult":
+    doc: "modules/infra/merge.md"
+    description: "合并结果"
+    package: "infra.merge"
+
+  # 解析相关
+  "SQLParserEngine":
+    doc: "modules/infra/parser.md"
+    description: "SQL解析引擎"
+    package: "infra.parser"
+
+  "SQLStatement":
+    doc: "modules/infra/parser.md"
+    description: "SQL语句抽象"
+    package: "infra.parser"
+
+# ============================================
+# 标签索引 (Tag Index)
+# AI系统可通过标签快速定位相关文档集合
+# ============================================
+
+tag_index:
+  # 架构标签
+  "#architecture":
+    - path: "overview/proposal.md"
+      relevance: "high"
+      section: "架构总览"
+    - path: "overview/design-principles.md"
+      relevance: "high"
+      section: "设计原则"
+
+  "#pluggable":
+    - path: "overview/proposal.md#微内核架构"
+      relevance: "high"
+    - path: "modules/infra/spi.md"
+      relevance: "high"
+
+  "#distributed":
+    - path: "modules/features/sharding.md"
+      relevance: "high"
+    - path: "modules/features/readwrite-splitting.md"
+      relevance: "medium"
+
+  # 功能标签
+  "#sharding":
+    - path: "modules/features/sharding.md"
+      relevance: "high"
+      description: "数据分片核心文档"
+    - path: "overview/proposal.md#特性功能层"
+      relevance: "medium"
+    - path: "reference/terminology.md"
+      relevance: "low"
+      section: "分片术语"
+
+  "#encrypt":
+    - path: "modules/features/encrypt.md"
+      relevance: "high"
+    - path: "reference/terminology.md"
+      relevance: "low"
+      section: "加密术语"
+
+  "#route":
+    - path: "modules/infra/route.md"
+      relevance: "high"
+      description: "路由引擎核心文档"
+    - path: "reference/data-flow.md#phase-2-路由规划"
+      relevance: "medium"
+    - path: "modules/kernel/data-pipeline.md"
+      relevance: "medium"
+
+  "#rewrite":
+    - path: "modules/infra/rewrite.md"
+      relevance: "high"
+    - path: "reference/data-flow.md#phase-3-sql重写"
+      relevance: "medium"
+
+  "#merge":
+    - path: "modules/infra/merge.md"
+      relevance: "high"
+    - path: "reference/data-flow.md#phase-5-结果合并"
+      relevance: "medium"
+
+  # 数据流标签
+  "#dataflow":
+    - path: "reference/data-flow.md"
+      relevance: "high"
+      description: "完整数据流文档"
+    - path: "overview/proposal.md#数据流架构"
+      relevance: "medium"
+
+  "#sql":
+    - path: "modules/infra/parser.md"
+      relevance: "high"
+      section: "SQL解析"
+    - path: "modules/infra/route.md"
+      relevance: "medium"
+      section: "SQL路由"
+    - path: "modules/infra/rewrite.md"
+      relevance: "medium"
+      section: "SQL重写"
+
+  # 性能标签
+  "#performance":
+    - path: "overview/design-principles.md"
+      relevance: "medium"
+      section: "性能优化"
+    - path: "modules/infra/merge.md"
+      relevance: "medium"
+      section: "流式合并"
+
+  # 安全标签
+  "#security":
+    - path: "modules/features/encrypt.md"
+      relevance: "high"
+    - path: "modules/features/mask.md"
+      relevance: "high"
+    - path: "modules/kernel/authority.md"
+      relevance: "medium"
+
+# ============================================
+# 功能映射 (Feature Mapping)
+# AI系统可通过功能关键词定位文档
+# ============================================
+
+feature_index:
+  # 数据处理功能
+  "数据分片":
+    doc: "modules/features/sharding.md"
+    related_docs:
+      - "reference/terminology.md#分片术语"
+      - "reference/data-flow.md#路由规划"
+    key_concepts: ["分片算法", "分片策略", "分片键"]
+    use_cases: ["水平扩展", "大数据量表"]
+
+  "数据加密":
+    doc: "modules/features/encrypt.md"
+    related_docs:
+      - "reference/terminology.md#加密术语"
+    key_concepts: ["加密算法", "密钥管理", "加密列"]
+    use_cases: ["敏感数据保护", "数据安全"]
+
+  "读写分离":
+    doc: "modules/features/readwrite-splitting.md"
+    related_docs:
+      - "reference/terminology.md#读写分离术语"
+    key_concepts: ["主从复制", "负载均衡", "故障转移"]
+    use_cases: ["提升查询性能", "高可用"]
+
+  "数据脱敏":
+    doc: "modules/features/mask.md"
+    key_concepts: ["脱敏算法", "脱敏规则"]
+    use_cases: ["隐私保护", "合规要求"]
+
+  # 核心功能
+  "SQL解析":
+    doc: "modules/infra/parser.md"
+    key_concepts: ["AST", "词法分析", "语法分析"]
+    key_classes: ["SQLParserEngine", "SQLStatement"]
+
+  "SQL路由":
+    doc: "modules/infra/route.md"
+    key_concepts: ["路由策略", "路由算法", "Hint路由"]
+    key_classes: ["RouteEngine", "RouteResult"]
+
+  "SQL重写":
+    doc: "modules/infra/rewrite.md"
+    key_concepts: ["Token重写", "Segment重写", "表名重写"]
+    key_classes: ["SQLRewriteContext", "TokenRewriter"]
+
+  "SQL执行":
+    doc: "modules/infra/executor.md"
+    key_concepts: ["并行执行", "串行执行", "流式执行"]
+    key_classes: ["ExecuteEngine", "ExecutionContext"]
+
+  "结果合并":
+    doc: "modules/infra/merge.md"
+    key_concepts: ["流式合并", "内存合并", "排序合并"]
+    key_classes: ["MergeEngine", "MergedResult"]
+
+# ============================================
+# 问题诊断索引 (Problem Diagnosis Index)
+# AI系统可通过问题现象定位相关文档
+# ============================================
+
+problem_index:
+  # 路由问题
+  "路由错误":
+    symptoms:
+      - "SQL路由到错误的数据源"
+      - "分片算法计算结果不正确"
+    possible_causes:
+      - "分片规则配置错误"
+      - "分片算法实现问题"
+    docs:
+      - path: "modules/infra/route.md"
+        section: "路由策略"
+      - path: "modules/features/sharding.md"
+        section: "分片规则配置"
+
+  "性能问题":
+    symptoms:
+      - "查询响应慢"
+      - "内存占用高"
+    possible_causes:
+      - "未使用流式合并"
+      - "路由结果未缓存"
+    docs:
+      - path: "modules/infra/merge.md"
+        section: "流式合并"
+      - path: "modules/infra/route.md"
+        section: "路由缓存"
+
+  "数据不一致":
+    symptoms:
+      - "读取数据不是最新"
+      - "主从数据不一致"
+    possible_causes:
+      - "读写分离配置问题"
+      - "主从复制延迟"
+    docs:
+      - path: "modules/features/readwrite-splitting.md"
+        section: "主从同步"
+
+# ============================================
+# 学习路径 (Learning Paths)
+# 为人类读者提供推荐的学习路径
+# ============================================
+
+learning_paths:
+  # 架构师路径
+  architect:
+    title: "架构师学习路径"
+    description: "深入理解ShardingSphere的整体架构和设计理念"
+    steps:
+      - step: 1
+        title: "了解整体架构"
+        path: "overview/proposal.md"
+        duration: "15分钟"
+      - step: 2
+        title: "理解设计原则"
+        path: "overview/design-principles.md"
+        duration: "10分钟"
+      - step: 3
+        title: "深入核心流程"
+        path: "reference/data-flow.md"
+        duration: "20分钟"
+      - step: 4
+        title: "学习特性模块"
+        paths:
+          - "modules/features/sharding.md"
+          - "modules/features/encrypt.md"
+        duration: "30分钟"
+
+  # 开发者路径
+  developer:
+    title: "开发者学习路径"
+    description: "快速上手ShardingSphere的开发和集成"
+    steps:
+      - step: 1
+        title: "快速入门"
+        path: "overview/proposal.md#快速开始"
+        duration: "10分钟"
+      - step: 2
+        title: "集成方式选择"
+        paths:
+          - "modules/integration/jdbc.md"
+          - "modules/integration/proxy.md"
+        duration: "15分钟"
+      - step: 3
+        title: "配置特性"
+        paths:
+          - "modules/features/sharding.md#配置"
+          - "modules/features/readwrite-splitting.md#配置"
+        duration: "20分钟"
+      - step: 4
+        title: "API参考"
+        path: "reference/api-reference.md"
+        duration: "按需查阅"
+
+  # AI系统路径
+  ai_system:
+    title: "AI系统使用路径"
+    description: "AI系统快速定位和理解代码逻辑"
+    steps:
+      - step: 1
+        title: "加载索引"
+        action: "读取本索引文件（.ai-index.yaml）"
+      - step: 2
+        title: "路径映射"
+        action: "通过code_path_mappings快速定位文档"
+      - step: 3
+        title: "标签检索"
+        action: "通过tag_index查找相关文档集合"
+      - step: 4
+        title: "类名定位"
+        action: "通过class_index定位到具体类的文档"
+
+# ============================================
+# 文档统计 (Document Statistics)
+# ============================================
+
+statistics:
+  total_documents: 25
+  by_layer:
+    overview: 2
+    infra: 8
+    kernel: 4
+    features: 6
+    integration: 3
+    reference: 4
+  by_type:
+    module_docs: 21
+    reference_docs: 4
+  total_terms: 90
+  total_tags: 50
+  total_code_examples: 30
+
+# ============================================
+# AI提示 (AI Hints)
+# 为AI系统提供使用建议
+# ============================================
+
+ai_hints:
+  usage_suggestions:
+    - "遇到类名时，先在class_index中查找，快速定位到相关文档"
+    - "处理代码路径时，使用code_path_mappings直接映射到文档"
+    - "需要理解功能时，使用feature_index查找核心概念和使用场景"
+    - "遇到问题时，使用problem_index进行诊断定位"
+    - "为人类推荐学习路径时，参考learning_paths"
+
+  common_patterns:
+    - pattern: "定位路由逻辑"
+      steps:
+        - "查找类名：RouteEngine"
+        - "定位文档：modules/infra/route.md"
+        - "阅读关键概念和API"
+
+    - pattern: "理解分片算法"
+      steps:
+        - "查找功能：数据分片"
+        - "定位文档：modules/features/sharding.md"
+        - "查看ShardingAlgorithm接口"
+
+  update_frequency: "每周更新一次，或在重大代码变更后更新"
